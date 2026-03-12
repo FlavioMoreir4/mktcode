@@ -1,13 +1,23 @@
+<?php
+
 declare(strict_types=1);
 
 namespace App\Actions\Public;
 
+use App\Models\Inquiry;
+use Illuminate\Support\Facades\Log;
+
 class ProcessInquiry
 {
+    /**
+     * Process the inquiry.
+     *
+     * @param  array<string, string>  $data
+     */
     public function execute(array $data): void
     {
-        // TODO: Enviar notificação por e-mail ou Telegram
-        // Por enquanto, apenas log para demonstração ou salvar no banco se houvesse model
-        \Log::info('New Inquiry Received', $data);
+        Inquiry::create($data);
+
+        Log::info('Inquiry processed:', $data);
     }
 }

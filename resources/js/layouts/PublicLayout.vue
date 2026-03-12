@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from 'vue';
+import logo from '@/../images/logo.png';
+import { services, projects, about, contact } from '@/routes/public';
 
 const isScrolled = ref(false);
 
@@ -18,31 +20,72 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-background font-sans selection:bg-primary/10 select-none">
+    <div class="min-h-screen bg-background font-sans selection:bg-primary/10">
         <!-- Navigation -->
         <nav
-            class="fixed top-0 z-50 w-full transition-all duration-300 px-6 py-4"
-            :class="[isScrolled ? 'bg-background/80 backdrop-blur-md border-b border-border py-3' : 'bg-transparent']"
+            class="fixed top-0 z-50 w-full px-6 py-4 transition-all duration-300"
+            :class="[
+                isScrolled
+                    ? 'border-b border-border bg-background/80 py-3 backdrop-blur-md'
+                    : 'bg-transparent',
+            ]"
         >
-            <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <Link href="/" class="flex items-center gap-2 group">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-lg group-hover:scale-105 transition-transform">
-                        M
+            <div class="mx-auto flex max-w-7xl items-center justify-between">
+                <Link href="/" class="group flex items-center gap-2">
+                    <div
+                        class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg transition-transform group-hover:scale-105"
+                    >
+                        <img
+                            :src="logo"
+                            alt="MC Logo"
+                            class="h-full w-full object-contain"
+                            @error="
+                                (e) =>
+                                    ((
+                                        e.target as HTMLImageElement
+                                    ).style.display = 'none')
+                            "
+                        />
+                        <div
+                            class="logo-fallback flex h-full w-full items-center justify-center bg-primary text-lg font-bold text-primary-foreground"
+                        >
+                            MC
+                        </div>
                     </div>
-                    <span class="font-bold text-xl tracking-tight">MC</span>
+                    <span class="text-xl font-bold tracking-tight"
+                        >Marketing & Code</span
+                    >
                 </Link>
 
-                <div class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-                    <a href="#servicos" class="hover:text-foreground transition-colors">Serviços</a>
-                    <a href="#projetos" class="hover:text-foreground transition-colors">Projetos</a>
-                    <a href="#sobre" class="hover:text-foreground transition-colors">Sobre</a>
-                    <a href="#contato" class="hover:text-foreground transition-colors">Contato</a>
+                <div
+                    class="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex"
+                >
+                    <Link
+                        :href="services().url"
+                        class="transition-colors hover:text-foreground"
+                        >Serviços</Link
+                    >
+                    <Link
+                        :href="projects().url"
+                        class="transition-colors hover:text-foreground"
+                        >Projetos</Link
+                    >
+                    <Link
+                        :href="about().url"
+                        class="transition-colors hover:text-foreground"
+                        >Sobre</Link
+                    >
+                    <Link
+                        :href="contact().url"
+                        class="transition-colors hover:text-foreground"
+                        >Contato</Link
+                    >
                 </div>
 
                 <div class="flex items-center gap-4">
                     <Link
-                        href="#contato"
-                        class="px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:opacity-90 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        :href="contact().url"
+                        class="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
                     >
                         Bora conversar
                     </Link>
@@ -55,41 +98,124 @@ onUnmounted(() => {
         </main>
 
         <!-- Footer -->
-        <footer class="bg-muted/30 border-t border-border py-12 px-6">
-            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+        <footer class="border-t border-border bg-muted/30 px-6 py-12">
+            <div
+                class="mx-auto grid max-w-7xl grid-cols-1 gap-12 md:grid-cols-4"
+            >
                 <div class="md:col-span-2">
-                    <Link href="/" class="flex items-center gap-2 mb-4">
-                        <div class="w-6 h-6 bg-primary rounded flex items-center justify-center text-primary-foreground font-bold text-xs">
-                            M
+                    <Link href="/" class="mb-4 flex items-center gap-2">
+                        <div
+                            class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg transition-transform group-hover:scale-105"
+                        >
+                            <img
+                                :src="logo"
+                                alt="MC Logo"
+                                class="h-full w-full object-contain"
+                                @error="
+                                    (e) =>
+                                        ((
+                                            e.target as HTMLImageElement
+                                        ).style.display = 'none')
+                                "
+                            />
+                            <div
+                                class="logo-fallback flex h-full w-full items-center justify-center bg-primary text-lg font-bold text-primary-foreground"
+                            >
+                                MC
+                            </div>
                         </div>
-                        <span class="font-bold text-lg tracking-tight">MC</span>
+                        <span class="text-lg font-bold tracking-tight"
+                            >Marketing & Code</span
+                        >
                     </Link>
-                    <p class="text-muted-foreground text-sm max-w-sm leading-relaxed">
-                        Desenvolvimento de sistemas, plataformas e presença digital com engenharia de alta qualidade e foco em resultados.
+                    <p
+                        class="max-w-sm text-sm leading-relaxed text-muted-foreground"
+                    >
+                        Desenvolvimento de sistemas, plataformas e presença
+                        digital com engenharia de alta qualidade e foco em
+                        resultados.
                     </p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-sm mb-4">Links</h4>
+                    <h4 class="mb-4 text-sm font-bold">Links</h4>
                     <ul class="space-y-2 text-sm text-muted-foreground">
-                        <li><a href="#servicos" class="hover:text-foreground transition-colors">Serviços</a></li>
-                        <li><a href="#projetos" class="hover:text-foreground transition-colors">Projetos</a></li>
-                        <li><a href="#sobre" class="hover:text-foreground transition-colors">Sobre</a></li>
-                        <li><a href="#contato" class="hover:text-foreground transition-colors">Contato</a></li>
+                        <li>
+                            <Link
+                                :href="services().url"
+                                class="transition-colors hover:text-foreground"
+                                >Serviços</Link
+                            >
+                        </li>
+                        <li>
+                            <Link
+                                :href="projects().url"
+                                class="transition-colors hover:text-foreground"
+                                >Projetos</Link
+                            >
+                        </li>
+                        <li>
+                            <Link
+                                :href="about().url"
+                                class="transition-colors hover:text-foreground"
+                                >Sobre</Link
+                            >
+                        </li>
+                        <li>
+                            <Link
+                                :href="contact().url"
+                                class="transition-colors hover:text-foreground"
+                                >Contato</Link
+                            >
+                        </li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold text-sm mb-4">Contato</h4>
+                    <h4 class="mb-4 text-sm font-bold">Contato</h4>
                     <ul class="space-y-2 text-sm text-muted-foreground">
-                        <li><a href="#" class="hover:text-foreground transition-colors">Telegram</a></li>
-                        <li><a href="#" class="hover:text-foreground transition-colors">WhatsApp</a></li>
-                        <li><a href="#" class="hover:text-foreground transition-colors">E-mail</a></li>
+                        <li>
+                            <a
+                                href="https://t.me/flaviomoreir4"
+                                target="_blank"
+                                class="transition-colors hover:text-foreground"
+                                >Telegram</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="https://wa.me/5511982776725"
+                                target="_blank"
+                                class="transition-colors hover:text-foreground"
+                                >WhatsApp</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="mailto:flavio.moreira@mktcode.digital"
+                                class="transition-colors hover:text-foreground"
+                                >E-mail</a
+                            >
+                        </li>
                     </ul>
                 </div>
             </div>
-            <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
-                <p>© 2025 MC Marketing & Code · CNPJ XX.XXX.XXX/XXXX-XX</p>
+            <div
+                class="mx-auto mt-12 flex max-w-7xl flex-col items-center justify-between gap-4 border-t border-border pt-8 text-xs text-muted-foreground md:flex-row"
+            >
+                <p>© 2025 MC Marketing & Code · CNPJ 43.296.394/0001-80</p>
                 <p>Desenvolvido com Laravel, Vue 3 e muito café.</p>
             </div>
         </footer>
     </div>
 </template>
+
+<style scoped>
+.logo-fallback {
+    position: absolute;
+    inset: 0;
+}
+
+img:not([style*='display: none']) + .logo-fallback {
+    opacity: 0;
+    pointer-events: none;
+}
+</style>
