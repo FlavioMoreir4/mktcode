@@ -26,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         if (app()->isProduction()) {
+            \URL::forceRootUrl(config('app.url'));
             \URL::forceScheme('https');
         }
     }
