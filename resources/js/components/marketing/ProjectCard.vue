@@ -15,37 +15,52 @@ defineProps<{
 </script>
 
 <template>
-    <div class="group relative bg-card border border-border rounded-3xl p-8 hover:border-primary/20 transition-all duration-500 overflow-hidden">
+    <div
+        class="group relative overflow-hidden rounded-3xl border border-border bg-card p-8 transition-all duration-500 hover:border-primary/20"
+    >
         <!-- Flare Effect -->
-        <div class="absolute -right-16 -top-16 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-500" />
-        
+        <div
+            class="absolute -top-16 -right-16 h-32 w-32 rounded-full bg-primary/5 blur-3xl transition-all duration-500 group-hover:bg-primary/10"
+        />
+
         <div class="relative z-10">
-            <div class="flex items-start justify-between mb-6">
+            <div class="mb-6 flex items-start justify-between">
                 <div>
-                    <span class="text-xs font-bold uppercase tracking-widest text-primary/60 mb-2 block">{{ project.category }}</span>
-                    <h3 class="text-2xl font-bold tracking-tight">{{ project.title }}</h3>
+                    <span
+                        class="mb-2 block text-xs font-bold tracking-widest text-primary/60 uppercase"
+                        >{{ project.category }}</span
+                    >
+                    <h3 class="text-2xl font-bold tracking-tight">
+                        {{ project.title }}
+                    </h3>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
-                    <LucideExternalLink class="w-4 h-4" />
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
+                >
+                    <LucideExternalLink class="h-4 w-4" />
                 </div>
             </div>
 
-            <p class="text-muted-foreground text-sm leading-relaxed mb-8">
+            <p class="mb-8 text-sm leading-relaxed text-muted-foreground">
                 {{ project.description }}
             </p>
 
             <div class="space-y-4">
-                <div v-for="highlight in project.highlights" :key="highlight" class="flex gap-3 text-sm">
-                    <span class="text-primary font-bold">→</span>
+                <div
+                    v-for="highlight in project.highlights"
+                    :key="highlight"
+                    class="flex gap-3 text-sm"
+                >
+                    <span class="font-bold text-primary">→</span>
                     <span>{{ highlight }}</span>
                 </div>
             </div>
 
-            <div class="mt-8 pt-8 border-t border-border flex flex-wrap gap-2">
-                <span 
-                    v-for="tag in project.tags" 
+            <div class="mt-8 flex flex-wrap gap-2 border-t border-border pt-8">
+                <span
+                    v-for="tag in project.tags"
                     :key="tag"
-                    class="px-3 py-1 bg-muted rounded-full text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                    class="rounded-full bg-muted px-3 py-1 text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
                 >
                     {{ tag }}
                 </span>
