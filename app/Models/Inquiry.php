@@ -16,5 +16,7 @@ class Inquiry extends Model
         'email',
         'whatsapp',
         'message',
+        'status',
+        'notes',
     ];
 }

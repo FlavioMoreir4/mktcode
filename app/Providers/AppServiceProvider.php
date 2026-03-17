@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Post;
+use App\Models\Project;
+use App\Models\User;
+use App\Observers\PostObserver;
+use App\Observers\ProjectObserver;
+use App\Observers\UserObserver;
+use App\Services\Telegram\TelegramBotTarget;
+use App\Services\Telegram\TelegramNotifier;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(TelegramNotifier::class, function () {
+            return new TelegramNotifier(TelegramBotTarget::default());
+        });
     }
 
     /**
@@ -29,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
             \URL::forceRootUrl(config('app.url'));
             \URL::forceScheme('https');
         }
+
+        Post::observe(PostObserver::class);
+        Project::observe(ProjectObserver::class);
+        User::observe(UserObserver::class);
     }
 
     /**

@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+    - vendor/phpstan/phpstan-beberlei-assert/extension.neon
+    - phar://phpstan.phar/conf/bleedingEdge.neon
+
+parameters:
+    paths:
+        - app/
+        - bootstrap/
+    level: 3
+    tmpDir: /tmp/phpstan
+
+    checkModelProperties: true
+    checkMissingTypehints: true

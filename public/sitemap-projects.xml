@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+    <url>
+    <loc>https://deploy.mktcode.digital/projetos/cim-base</loc>
+    <lastmod>2026-03-13T19:44:19+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+    <image:loc>https://deploy.mktcode.digital/storage/4/01KKMBJ0PJKH99FX8VMC6Q0Q4J.png</image:loc>
+    <image:caption>CIM Base</image:caption>
+</image:image>
+        </url>
+    <url>
+    <loc>https://deploy.mktcode.digital/projetos/omniaflow-sistema-de-gestao-educacional</loc>
+    <lastmod>2026-03-13T19:16:18+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <image:image>
+    <image:loc>https://deploy.mktcode.digital/storage/1/01KKM007JW2HVFM22FC8FNJAJ7.png</image:loc>
+    <image:caption>Omniaflow — Sistema de Gestão Educacional</image:caption>
+</image:image>
+        </url>
+</urlset>

@@ -1,70 +1,303 @@
 <script setup lang="ts">
-import { LucideExternalLink } from 'lucide-vue-next';
+import { Link } from '@inertiajs/vue3';
+import { ExternalLink, ArrowRight } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import projects from '@/routes/public/projects';
+import type { Project } from '@/types/models';
 
-interface Project {
-    title: string;
-    category: string;
-    description: string;
-    tags: string[];
-    highlights: string[];
+interface Props {
+    project: Project;
+    variant?: 'default' | 'featured';
 }
 
-defineProps<{
-    project: Project;
-}>();
+const props = withDefaults(defineProps<Props>(), {
+    variant: 'default',
+});
+
+const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
 </script>
 
 <template>
-    <div
-        class="group relative overflow-hidden rounded-3xl border border-border bg-card p-8 transition-all duration-500 hover:border-primary/20"
+    <!-- ── FEATURED variant ──────────────────────────────────────────────── -->
+    <Link
+        v-if="props.variant === 'featured'"
+        :href="projects.show(project.slug).url"
+        class="group block"
     >
-        <!-- Flare Effect -->
-        <div
-            class="absolute -top-16 -right-16 h-32 w-32 rounded-full bg-primary/5 blur-3xl transition-all duration-500 group-hover:bg-primary/10"
-        />
+        <Card
+            class="overflow-hidden rounded-[2rem] py-0 transition-all duration-500 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/8 md:flex md:flex-row"
+        >
+            <!-- Image -->
+            <div
+                class="aspect-video overflow-hidden bg-muted md:aspect-auto md:w-1/2"
+            >
+                <img
+                    v-if="getImage(project)"
+                    :src="getImage(project)!"
+                    :alt="project.title"
+                    class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                />
+                <div
+                    v-else
+                    class="flex h-full min-h-[240px] items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10"
+                >
+                    <span class="text-7xl font-bold text-primary/15">
+                        {{ project.title.charAt(0) }}
+                    </span>
+                </div>
+            </div>
 
-        <div class="relative z-10">
-            <div class="mb-6 flex items-start justify-between">
-                <div>
-                    <span
-                        class="mb-2 block text-xs font-bold tracking-widest text-primary/60 uppercase"
-                        >{{ project.category }}</span
+            <!-- Info -->
+            <div class="flex flex-col justify-center md:w-1/2">
+                <CardHeader class="gap-5 p-8 md:p-12">
+                    <!-- Meta -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <Badge
+                            variant="outline"
+                            class="text-[10px] tracking-widest text-primary/70 uppercase"
+                        >
+                            {{ project.category ?? 'Projeto' }}
+                        </Badge>
+                        <template v-if="project.client || project.year">
+                            <span class="text-xs text-border">·</span>
+                            <span
+                                v-if="project.client"
+                                class="text-xs font-medium text-foreground/80"
+                            >
+                                {{ project.client }}
+                            </span>
+                            <span
+                                v-if="project.client && project.year"
+                                class="text-xs text-border"
+                                >·</span
+                            >
+                            <span
+                                v-if="project.year"
+                                class="text-xs text-muted-foreground"
+                            >
+                                {{ project.year }}
+                            </span>
+                        </template>
+                    </div>
+
+                    <div>
+                        <CardTitle class="text-3xl tracking-tight md:text-4xl">
+                            {{ project.title }}
+                        </CardTitle>
+                        <CardDescription
+                            v-if="project.description"
+                            class="mt-3 leading-relaxed"
+                        >
+                            {{ project.description }}
+                        </CardDescription>
+                    </div>
+                </CardHeader>
+
+                <CardContent class="px-8 pb-0 md:px-12">
+                    <!-- Highlights -->
+                    <ul v-if="project.highlights?.length" class="space-y-1.5">
+                        <li
+                            v-for="h in project.highlights"
+                            :key="h"
+                            class="flex items-start gap-2 text-sm"
+                        >
+                            <span
+                                class="mt-0.5 leading-none font-bold text-primary"
+                                >→</span
+                            >
+                            <span class="text-muted-foreground">{{ h }}</span>
+                        </li>
+                    </ul>
+
+                    <!-- Stack -->
+                    <div
+                        v-if="project.stack?.length"
+                        class="mt-5 flex flex-wrap gap-2"
                     >
-                    <h3 class="text-2xl font-bold tracking-tight">
+                        <Badge
+                            v-for="tech in project.stack"
+                            :key="tech"
+                            variant="secondary"
+                            class="text-[10px] tracking-wider uppercase"
+                        >
+                            {{ tech }}
+                        </Badge>
+                    </div>
+                </CardContent>
+
+                <CardFooter class="gap-4 p-8 pt-6 md:p-12 md:pt-6">
+                    <Button
+                        variant="ghost"
+                        class="gap-1.5 px-0 font-bold text-primary group-hover:gap-2.5 hover:bg-transparent hover:text-primary/80"
+                    >
+                        Ver projeto
+                        <ArrowRight
+                            class="h-4 w-4 transition-transform group-hover:translate-x-1"
+                        />
+                    </Button>
+                    <Button
+                        v-if="project.url"
+                        as="a"
+                        :href="project.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        variant="ghost"
+                        size="sm"
+                        class="gap-1.5 text-muted-foreground"
+                        @click.stop
+                    >
+                        <ExternalLink class="h-3.5 w-3.5" />
+                        Ao vivo
+                    </Button>
+                </CardFooter>
+            </div>
+        </Card>
+    </Link>
+
+    <!-- ── DEFAULT variant ───────────────────────────────────────────────── -->
+    <Link
+        v-else
+        :href="projects.show(project.slug).url"
+        class="group block h-full"
+    >
+        <Card
+            class="relative h-full overflow-hidden rounded-3xl py-0 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+        >
+            <!-- Flare -->
+            <div
+                class="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/5 blur-3xl transition-all duration-500 group-hover:bg-primary/10"
+                aria-hidden="true"
+            />
+
+            <!-- Thumbnail -->
+            <div
+                v-if="getImage(project)"
+                class="aspect-[16/10] overflow-hidden bg-muted"
+            >
+                <img
+                    :src="getImage(project)!"
+                    :alt="project.title"
+                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                />
+            </div>
+
+            <CardHeader class="relative z-10 gap-4 p-7 pb-0">
+                <!-- Category + action icon -->
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <Badge
+                            variant="outline"
+                            class="text-[10px] tracking-widest text-primary/70 uppercase"
+                        >
+                            {{ project.category ?? 'Projeto' }}
+                        </Badge>
+                        <template v-if="project.client || project.year">
+                            <span class="text-xs text-border">·</span>
+                            <span
+                                v-if="project.client"
+                                class="text-xs text-muted-foreground"
+                            >
+                                {{ project.client }}
+                            </span>
+                            <span
+                                v-if="project.client && project.year"
+                                class="text-xs text-border"
+                                >·</span
+                            >
+                            <span
+                                v-if="project.year"
+                                class="text-xs text-muted-foreground"
+                            >
+                                {{ project.year }}
+                            </span>
+                        </template>
+                    </div>
+
+                    <Button
+                        v-if="project.url"
+                        as="a"
+                        :href="project.url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        size="icon"
+                        variant="secondary"
+                        class="h-8 w-8 shrink-0 rounded-full hover:bg-primary hover:text-primary-foreground"
+                        title="Abrir site ao vivo"
+                        @click.stop
+                    >
+                        <ExternalLink class="h-3.5 w-3.5" />
+                    </Button>
+                    <div
+                        v-else
+                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
+                    >
+                        <ArrowRight
+                            class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <CardTitle class="text-xl leading-snug tracking-tight">
                         {{ project.title }}
-                    </h3>
+                    </CardTitle>
+                    <CardDescription
+                        v-if="project.description"
+                        class="mt-2 line-clamp-2 leading-relaxed"
+                    >
+                        {{ project.description }}
+                    </CardDescription>
                 </div>
-                <div
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
-                >
-                    <LucideExternalLink class="h-4 w-4" />
-                </div>
-            </div>
+            </CardHeader>
 
-            <p class="mb-8 text-sm leading-relaxed text-muted-foreground">
-                {{ project.description }}
-            </p>
+            <CardContent
+                class="relative z-10 flex flex-1 flex-col gap-4 p-7 pt-4"
+            >
+                <!-- Highlights -->
+                <ul v-if="project.highlights?.length" class="space-y-1.5">
+                    <li
+                        v-for="h in project.highlights.slice(0, 3)"
+                        :key="h"
+                        class="flex items-start gap-2 text-sm"
+                    >
+                        <span class="mt-0.5 leading-none font-bold text-primary"
+                            >→</span
+                        >
+                        <span class="text-muted-foreground">{{ h }}</span>
+                    </li>
+                </ul>
+            </CardContent>
 
-            <div class="space-y-4">
-                <div
-                    v-for="highlight in project.highlights"
-                    :key="highlight"
-                    class="flex gap-3 text-sm"
+            <!-- Stack tags -->
+            <CardFooter
+                v-if="project.stack?.length"
+                class="relative z-10 flex-wrap gap-1.5 border-t border-border/60 p-7 pt-4"
+            >
+                <Badge
+                    v-for="tech in project.stack.slice(0, 5)"
+                    :key="tech"
+                    variant="secondary"
+                    class="text-[10px] tracking-wider uppercase"
                 >
-                    <span class="font-bold text-primary">→</span>
-                    <span>{{ highlight }}</span>
-                </div>
-            </div>
-
-            <div class="mt-8 flex flex-wrap gap-2 border-t border-border pt-8">
-                <span
-                    v-for="tag in project.tags"
-                    :key="tag"
-                    class="rounded-full bg-muted px-3 py-1 text-[10px] font-bold tracking-wider text-muted-foreground uppercase"
+                    {{ tech }}
+                </Badge>
+                <Badge
+                    v-if="project.stack.length > 5"
+                    variant="secondary"
+                    class="text-[10px] tracking-wider uppercase"
                 >
-                    {{ tag }}
-                </span>
-            </div>
-        </div>
-    </div>
+                    +{{ project.stack.length - 5 }}
+                </Badge>
+            </CardFooter>
+        </Card>
+    </Link>
 </template>
