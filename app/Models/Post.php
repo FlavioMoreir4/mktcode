@@ -72,7 +72,7 @@ class Post extends Model implements HasMedia, Sitemapable
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('cover')->singleFile();
+        $this->addMediaCollection('cover')->singleFile()->useDisk('public');
     }
 
     public function author(): BelongsTo

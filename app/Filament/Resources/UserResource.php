@@ -114,6 +114,8 @@ class UserResource extends Resource
                                                 'linkedin' => 'LinkedIn',
                                                 'twitter' => 'Twitter',
                                                 'instagram' => 'Instagram',
+                                                'reddit' => 'Reddit',
+                                                'tiktok' => 'TikTok',
                                                 'website' => 'Website',
                                             ])
                                             ->required(),

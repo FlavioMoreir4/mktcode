@@ -81,7 +81,7 @@ class Project extends Model implements HasMedia, Sitemapable
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('cover')->singleFile();
-        $this->addMediaCollection('screenshots');
+        $this->addMediaCollection('cover')->singleFile()->useDisk('public');
+        $this->addMediaCollection('screenshots')->useDisk('public');
     }
 }
