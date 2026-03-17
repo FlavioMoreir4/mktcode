@@ -19,4 +19,24 @@ class Inquiry extends Model
         'status',
         'notes',
     ];
+
+    public function getStatusLabel(): string
+    {
+        return match ($this->status) {
+            'new' => 'Novo',
+            'in_progress' => 'Em atendimento',
+            'resolved' => 'Resolvido',
+            default => $this->status,
+        };
+    }
+
+    public function getStatusColor(): string
+    {
+        return match ($this->status) {
+            'new' => 'info',
+            'in_progress' => 'warning',
+            'resolved' => 'success',
+            default => 'gray',
+        };
+    }
 }

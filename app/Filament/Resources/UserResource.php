@@ -4,128 +4,146 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
 use Filament\Tables;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Table;
-use FilamentTiptapEditor\TiptapEditor;
+use Illuminate\Support\Str;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
+    protected static ?string $navigationLabel = 'Usuários';
 
     protected static ?string $modelLabel = 'Usuário';
 
     protected static ?string $pluralModelLabel = 'Usuários';
 
-    protected static ?string $navigationLabel = 'Usuários';
-
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Tabs::make('Tabs')
+        return $schema
+            ->columns(12)
+            ->components([
+
+                Tabs::make('Usuário')
+                    ->columnSpanFull()
                     ->tabs([
-                        Tabs\Tab::make('Conta')
-                            ->icon('heroicon-m-user-circle')
+
+                        // ───── CONTA ─────
+                        Tab::make('Conta')
+                            ->icon('heroicon-o-user-circle')
                             ->schema([
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nome')
-                                    ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('email')
-                                    ->label('E-mail')
-                                    ->email()
-                                    ->required()
-                                    ->unique(ignoreRecord: true)
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('password')
-                                    ->label('Senha')
-                                    ->password()
-                                    ->dehydrated(fn ($state) => filled($state))
-                                    ->required(fn (string $context): bool => $context === 'create')
-                                    ->minLength(8)
-                                    ->maxLength(255),
-                                Forms\Components\Select::make('roles')
-                                    ->label('Funções/Perfis')
-                                    ->multiple()
-                                    ->relationship('roles', 'name')
-                                    ->preload(),
-                            ])->columns(2),
-                        Tabs\Tab::make('Perfil')
-                            ->icon('heroicon-m-identification')
+                                Grid::make(2)->schema([
+                                    Forms\Components\TextInput::make('name')
+                                        ->label('Nome')
+                                        ->required(),
+
+                                    Forms\Components\TextInput::make('email')
+                                        ->email()
+                                        ->required()
+                                        ->unique(ignoreRecord: true),
+
+                                    Forms\Components\TextInput::make('password')
+                                        ->password()
+                                        ->dehydrated(fn ($state) => filled($state))
+                                        ->required(fn ($context) => $context === 'create')
+                                        ->minLength(8),
+
+                                    Forms\Components\Select::make('roles')
+                                        ->label('Perfis')
+                                        ->multiple()
+                                        ->relationship('roles', 'name')
+                                        ->preload(),
+                                ]),
+                            ]),
+
+                        // ───── PERFIL ─────
+                        Tab::make('Perfil')
+                            ->icon('heroicon-o-identification')
                             ->schema([
-                                Forms\Components\TextInput::make('username')
-                                    ->label('Nome de Usuário (Slug)')
-                                    ->unique(ignoreRecord: true)
-                                    ->prefix('mktcode.com.br/u/')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('title')
-                                    ->label('Título Profissional')
-                                    ->placeholder('Ex: Desenvolvedor Senior / Designer UX')
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('location')
-                                    ->label('Localização')
-                                    ->placeholder('Ex: São Paulo, Brasil')
-                                    ->maxLength(255),
-                            ])->columns(2),
-                        Tabs\Tab::make('Bio')
-                            ->icon('heroicon-m-document-text')
+                                Grid::make(2)->schema([
+                                    Forms\Components\TextInput::make('username')
+                                        ->label('Username')
+                                        ->prefix('mktcode.com.br/u/')
+                                        ->unique(ignoreRecord: true)
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(fn ($set, $state) => $set('username', Str::slug($state))),
+
+                                    Forms\Components\TextInput::make('title')
+                                        ->label('Título'),
+
+                                    Forms\Components\TextInput::make('location')
+                                        ->label('Localização'),
+                                ]),
+                            ]),
+
+                        // ───── BIO ─────
+                        Tab::make('Bio')
+                            ->icon('heroicon-o-document-text')
                             ->schema([
-                                TiptapEditor::make('bio')
+                                Forms\Components\RichEditor::make('bio')
                                     ->label('Biografia')
-                                    ->profile('default')
                                     ->columnSpanFull(),
                             ]),
-                        Tabs\Tab::make('Redes Sociais')
-                            ->icon('heroicon-m-share')
+
+                        // ───── REDES ─────
+                        Tab::make('Redes')
+                            ->icon('heroicon-o-share')
                             ->schema([
-                                Repeater::make('social_links')
-                                    ->label('Links Sociais')
+                                Forms\Components\Repeater::make('social_links')
+                                    ->label('Links')
                                     ->schema([
                                         Forms\Components\Select::make('platform')
-                                            ->label('Plataforma')
                                             ->options([
                                                 'github' => 'GitHub',
                                                 'linkedin' => 'LinkedIn',
-                                                'twitter' => 'Twitter/X',
+                                                'twitter' => 'Twitter',
                                                 'instagram' => 'Instagram',
-                                                'youtube' => 'YouTube',
-                                                'website' => 'Site Pessoal',
-                                                'other' => 'Outro',
+                                                'website' => 'Website',
                                             ])
                                             ->required(),
+
                                         Forms\Components\TextInput::make('url')
-                                            ->label('URL')
                                             ->url()
                                             ->required(),
                                     ])
                                     ->columns(2)
-                                    ->itemLabel(fn (array $state): ?string => $state['platform'] ?? null),
+                                    ->reorderable(),
                             ]),
-                        Tabs\Tab::make('Mídia')
-                            ->icon('heroicon-m-photo')
+
+                        // ───── MÍDIA ─────
+                        Tab::make('Mídia')
+                            ->icon('heroicon-o-photo')
                             ->schema([
-                                SpatieMediaLibraryFileUpload::make('profile_photo')
-                                    ->label('Foto de Perfil')
+                                Forms\Components\SpatieMediaLibraryFileUpload::make('profile_photo')
+                                    ->label('Avatar')
                                     ->collection('profile_photo')
                                     ->avatar()
-                                    ->image()
-                                    ->imageEditor(),
-                                SpatieMediaLibraryFileUpload::make('cover_photo')
-                                    ->label('Foto de Capa (Banner)')
+                                    ->image(),
+
+                                Forms\Components\SpatieMediaLibraryFileUpload::make('cover_photo')
+                                    ->label('Capa')
                                     ->collection('cover_photo')
                                     ->image()
-                                    ->imageEditor()
                                     ->columnSpanFull(),
-                            ])->columns(2),
-                    ])->columnSpanFull(),
+                            ])
+                            ->columns(2),
+                    ]),
             ]);
     }
 
@@ -133,43 +151,55 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nome')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->label('E-mail')
-                    ->searchable()
-                    ->sortable(),
+
+                Stack::make([
+                    Tables\Columns\TextColumn::make('name')
+                        ->weight(FontWeight::Bold)
+                        ->size(TextSize::Large)
+                        ->searchable(),
+
+                    Tables\Columns\TextColumn::make('email')
+                        ->size(TextSize::Small)
+                        ->color('gray'),
+                ]),
+
                 Tables\Columns\TextColumn::make('roles.name')
                     ->label('Perfis')
                     ->badge()
                     ->color('primary'),
+
+                Tables\Columns\TextColumn::make('posts_count')
+                    ->counts('posts')
+                    ->label('Posts')
+                    ->formatStateUsing(fn ($state) => $state.' posts')
+                    ->badge()
+                    ->color('info'),
+
+                Tables\Columns\TextColumn::make('projects_count')
+                    ->counts('projects')
+                    ->label('Projetos')
+                    ->formatStateUsing(fn ($state) => $state.' projetos')
+                    ->badge()
+                    ->color('success'),
+
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Criado em')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->since()
+                    ->label('Criado')
+                    ->sortable(),
             ])
-            ->filters([
-                //
+
+            ->defaultSort('created_at', 'desc')
+
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+
+            ->groupedBulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

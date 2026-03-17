@@ -4,10 +4,25 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InquiryResource\Pages;
 use App\Models\Inquiry;
+use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
 use Filament\Tables;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -15,7 +30,7 @@ class InquiryResource extends Resource
 {
     protected static ?string $model = Inquiry::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-envelope';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-envelope';
 
     protected static ?string $modelLabel = 'Mensagem';
 
@@ -23,59 +38,45 @@ class InquiryResource extends Resource
 
     protected static ?string $navigationLabel = 'Mensagens';
 
-    public static function form(Form $form): Form
+    // 🔥 Badge no menu = radar de oportunidade
+    public static function getNavigationBadge(): ?string
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(3)
+        return (string) static::getModel()::where('status', 'new')->count();
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->columns(12)
+            ->components([
+                Section::make('Mensagem recebida')
+                    ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                    ->columnSpan(8)
                     ->schema([
+                        Forms\Components\Textarea::make('message')
+                            ->rows(12)
+                            ->disabled()
+                            ->columnSpanFull(),
+                    ]),
 
-                        // ─── Coluna principal (mensagem em destaque) ───────────────
-                        Forms\Components\Group::make()
+                Grid::make(1)
+                    ->columnSpan(4)
+                    ->schema([
+                        Group::make()
                             ->schema([
 
-                                Forms\Components\Section::make('Mensagem recebida')
-                                    ->description('Conteúdo enviado pelo lead via formulário de contato.')
-                                    ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                                    ->schema([
-                                        Forms\Components\Textarea::make('message')
-                                            ->label('')
-                                            ->rows(12)
-                                            ->disabled()
-                                            ->columnSpanFull(),
-                                    ]),
-
-                            ])
-                            ->columnSpan(2),
-
-                        // ─── Sidebar direita ───────────────────────────────────────
-                        Forms\Components\Group::make()
-                            ->schema([
-
-                                Forms\Components\Section::make('Contato')
-                                    ->icon('heroicon-o-user-circle')
+                                Section::make('Contato')
                                     ->compact()
                                     ->schema([
-                                        Forms\Components\TextInput::make('name')
-                                            ->label('Nome')
-                                            ->disabled(),
-
-                                        Forms\Components\TextInput::make('email')
-                                            ->label('E-mail')
-                                            ->disabled(),
-
-                                        Forms\Components\TextInput::make('whatsapp')
-                                            ->label('WhatsApp')
-                                            ->disabled(),
+                                        Forms\Components\TextInput::make('name')->disabled(),
+                                        Forms\Components\TextInput::make('email')->disabled(),
+                                        Forms\Components\TextInput::make('whatsapp')->disabled(),
                                     ]),
 
-                                // ── Campos futuros: gestão do lead ────────────────
-                                Forms\Components\Section::make('Gestão')
-                                    ->icon('heroicon-o-adjustments-horizontal')
+                                Section::make('Gestão')
                                     ->compact()
                                     ->schema([
                                         Forms\Components\Select::make('status')
-                                            ->label('Status')
                                             ->options([
                                                 'new' => 'Novo',
                                                 'in_progress' => 'Em atendimento',
@@ -86,35 +87,20 @@ class InquiryResource extends Resource
                                             ->native(false),
 
                                         Forms\Components\Textarea::make('notes')
-                                            ->label('Anotações internas')
-                                            ->placeholder('Observações sobre este contato...')
                                             ->rows(4),
                                     ]),
 
-                                // ── Timestamps ────────────────────────────────────
-                                Forms\Components\Section::make('Registro')
-                                    ->icon('heroicon-o-clock')
+                                Section::make('Registro')
                                     ->compact()
                                     ->schema([
-                                        Forms\Components\Placeholder::make('created_at')
-                                            ->label('Recebido em')
-                                            ->content(
-                                                fn ($record) => $record?->created_at
-                                                    ?->setTimezone('America/Sao_Paulo')
-                                                    ->format('d/m/Y \à\s H:i')
-                                                    ?? '—'
-                                            ),
+                                        TextEntry::make('created_at')
+                                            ->label('Recebido')
+                                            ->since(),
 
-                                        Forms\Components\Placeholder::make('updated_at')
-                                            ->label('Última atualização')
-                                            ->content(
-                                                fn ($record) => $record?->updated_at
-                                                    ?->setTimezone('America/Sao_Paulo')
-                                                    ->format('d/m/Y \à\s H:i')
-                                                    ?? '—'
-                                            ),
+                                        TextEntry::make('updated_at')
+                                            ->label('Atualizado')
+                                            ->since(),
                                     ]),
-
                             ])
                             ->columnSpan(1),
                     ]),
@@ -125,29 +111,33 @@ class InquiryResource extends Resource
     {
         return $table
             ->defaultSort('created_at', 'desc')
+
+            // 🔥 Prioriza automaticamente mensagens novas
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderByRaw("CASE WHEN status = 'new' THEN 0 ELSE 1 END")
+            )
+
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nome')
-                    ->searchable()
-                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('email')
-                    ->label('E-mail')
-                    ->searchable()
-                    ->copyable(),
+                Stack::make([
+                    Tables\Columns\TextColumn::make('name')
+                        ->label('Contato')
+                        ->weight(FontWeight::Bold)
+                        ->size(TextSize::Large)
+                        ->searchable(),
 
-                Tables\Columns\TextColumn::make('whatsapp')
-                    ->label('WhatsApp')
-                    ->copyable(),
+                    Tables\Columns\TextColumn::make('email')
+                        ->size(TextSize::Small)
+                        ->color('gray')
+                        ->copyable(),
+                ]),
 
                 Tables\Columns\TextColumn::make('message')
                     ->label('Mensagem')
-                    ->limit(60)
-                    ->tooltip(fn ($record) => $record->message),
+                    ->limit(50)
+                    ->tooltip(fn ($record) => $record->message)
+                    ->wrap(),
 
-                // ── Campo futuro já exposto na listagem ──────────────────
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'new' => 'gray',
@@ -165,56 +155,76 @@ class InquiryResource extends Resource
                     }),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Recebido em')
-                    ->dateTime('d/m/Y H:i')
-                    ->timezone('America/Sao_Paulo')
+                    ->label('Recebido')
+                    ->since()
                     ->sortable(),
             ])
+
+            // 🔥 Destaque visual para novos
+            ->recordClasses(fn (Inquiry $record) => $record->status === 'new'
+                    ? 'bg-gray-50 dark:bg-gray-800/40'
+                    : null
+            )
+
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Status')
                     ->options([
                         'new' => 'Novo',
                         'in_progress' => 'Em atendimento',
                         'resolved' => 'Resolvido',
                         'archived' => 'Arquivado',
                     ]),
-
-                Tables\Filters\Filter::make('created_at')
-                    ->label('Período')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')->label('De'),
-                        Forms\Components\DatePicker::make('to')->label('Até'),
-                    ])
-                    ->query(function (Builder $query, array $data) {
-                        return $query
-                            ->when($data['from'], fn (Builder $q) => $q->whereDate('created_at', '>=', $data['from']))
-                            ->when($data['to'], fn (Builder $q) => $q->whereDate('created_at', '<=', $data['to']));
-                    }),
             ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\Action::make('whatsapp')
-                        ->label('WhatsApp')
+
+            ->recordActions([
+                ActionGroup::make([
+
+                    // 🔥 Ação rápida = reduz fricção absurda
+                    Action::make('atender')
+                        ->label('Atender')
+                        ->icon('heroicon-o-play')
+                        ->color('warning')
+                        ->visible(fn (Inquiry $record) => $record->status === 'new')
+                        ->action(fn (Inquiry $record) => $record->update(['status' => 'in_progress'])),
+
+                    Action::make('resolver')
+                        ->label('Resolver')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->visible(fn (Inquiry $record) => $record->status !== 'resolved')
+                        ->action(fn (Inquiry $record) => $record->update(['status' => 'resolved'])),
+
+                    ViewAction::make(),
+                    EditAction::make(),
+
+                    Action::make('whatsapp')
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->color('success')
                         ->url(fn (Inquiry $record): string => 'https://wa.me/'.preg_replace('/\D/', '', $record->whatsapp))
                         ->openUrlInNewTab(),
-                    Tables\Actions\Action::make('email')
-                        ->label('E-mail')
+
+                    Action::make('email')
                         ->icon('heroicon-o-envelope')
                         ->color('info')
                         ->url(fn (Inquiry $record): string => "mailto:{$record->email}")
                         ->openUrlInNewTab(),
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+
+            ->groupedBulkActions([
+                BulkActionGroup::make([
+
+                    BulkAction::make('marcar_como_resolvido')
+                        ->label('Marcar como resolvido')
+                        ->icon('heroicon-o-check')
+                        ->action(fn ($records) => $records->each->update(['status' => 'resolved'])),
+
+                    DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+
+            ->emptyStateHeading('Nenhuma mensagem ainda')
+            ->emptyStateDescription('Quando alguém entrar em contato, aparecerá aqui.');
     }
 
     public static function getRelations(): array

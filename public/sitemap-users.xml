@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
     <url>
-    <loc>https://deploy.mktcode.digital/u/flaviomoreir4</loc>
+    <loc>http://localhost:8000/u/flaviomoreir4</loc>
     <lastmod>2026-03-13T18:13:11+00:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
     <image:image>
-    <image:loc>https://deploy.mktcode.digital/storage/2/01KKM6E17EA44687ZEGCJNAH3T.jpg</image:loc>
+    <image:loc>http://localhost:8000/storage/2/01KKM6E17EA44687ZEGCJNAH3T.jpg</image:loc>
     <image:caption>Desenvolvedor Senior</image:caption>
 </image:image>
         </url>

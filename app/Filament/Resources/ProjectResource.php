@@ -4,21 +4,29 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Models\Project;
+use BackedEnum;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
+use Filament\Support\Enums\TextSize;
 use Filament\Tables;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Table;
-use FilamentTiptapEditor\Enums\TiptapOutput;
-use FilamentTiptapEditor\TiptapEditor;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class ProjectResource extends Resource
 {
     protected static ?string $model = Project::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-command-line';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-command-line';
 
     protected static ?string $modelLabel = 'Projeto';
 
@@ -26,83 +34,120 @@ class ProjectResource extends Resource
 
     protected static ?string $navigationLabel = 'Projetos';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Grid::make(3)
+        return $schema
+            ->columns(12)
+            ->components([
+
+                Section::make('Conteúdo Principal')
+                    ->description('Aqui vive a alma do projeto — título, narrativa e impacto.')
+                    ->icon('heroicon-o-document-text')
+                    ->columnSpan(8)
                     ->schema([
-                        Forms\Components\Group::make()
+                        Forms\Components\TextInput::make('title')
+                            ->label('Título')
+                            ->required()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($set, $state) => $set('slug', Str::slug($state)))
+                            ->maxLength(120),
+
+                        Forms\Components\TextInput::make('slug')
+                            ->required()
+                            ->unique(ignoreRecord: true)
+                            ->helperText('URL amigável gerada automaticamente (editável)'),
+
+                        Forms\Components\Textarea::make('description')
+                            ->label('Descrição Curta')
+                            ->rows(3)
+                            ->placeholder('Resumo objetivo do projeto...'),
+
+                        Forms\Components\RichEditor::make('content')
+                            ->label('Case completo')
+                            ->required()
+                            ->columnSpanFull(),
+                    ]),
+
+                Grid::make(1)
+                    ->columnSpan(4)
+                    ->schema([
+
+                        Section::make('Publicação')
+                            ->icon('heroicon-o-rocket-launch')
+                            ->compact()
                             ->schema([
-                                Forms\Components\Section::make('Detalhes do Projeto')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('title')
-                                            ->label('Título')
-                                            ->required()
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(fn ($set, $state) => $set('slug', Str::slug($state))),
-                                        Forms\Components\TextInput::make('slug')
-                                            ->required()
-                                            ->unique(ignoreRecord: true),
-                                        Forms\Components\Textarea::make('description')
-                                            ->label('Descrição Curta')
-                                            ->rows(3),
-                                        TiptapEditor::make('content')
-                                            ->label('Conteúdo/Case Study')
-                                            ->required()
-                                            ->profile('default')
-                                            ->output(TiptapOutput::Json)
-                                            ->columnSpanFull(),
-                                    ]),
-                                Forms\Components\Section::make('Mídia')
-                                    ->schema([
-                                        SpatieMediaLibraryFileUpload::make('cover')
-                                            ->label('Capa do Projeto')
-                                            ->collection('cover')
-                                            ->image(),
-                                        SpatieMediaLibraryFileUpload::make('screenshots')
-                                            ->label('Screenshots/Galeria')
-                                            ->collection('screenshots')
-                                            ->multiple()
-                                            ->reorderable()
-                                            ->image(),
-                                    ]),
-                            ])
-                            ->columnSpan(2),
-                        Forms\Components\Group::make()
+                                Forms\Components\Select::make('status')
+                                    ->label('Status')
+                                    ->options([
+                                        'draft' => 'Rascunho',
+                                        'published' => 'Publicado',
+                                    ])
+                                    ->default('draft')
+                                    ->required()
+                                    ->native(false),
+
+                                Forms\Components\Toggle::make('featured')
+                                    ->label('Destaque')
+                                    ->helperText('Exibir na home'),
+
+                                Forms\Components\TextInput::make('sort_order')
+                                    ->label('Ordem')
+                                    ->numeric()
+                                    ->default(0),
+                            ]),
+
+                        Section::make('Informações')
+                            ->icon('heroicon-o-building-office')
+                            ->compact()
                             ->schema([
-                                Forms\Components\Section::make('Metadados')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('client')
-                                            ->label('Cliente'),
-                                        Forms\Components\TextInput::make('year')
-                                            ->label('Ano'),
-                                        Forms\Components\Select::make('status')
-                                            ->options(['draft' => 'Rascunho', 'published' => 'Publicado'])
-                                            ->default('draft')
-                                            ->required(),
-                                        Forms\Components\TagsInput::make('stack')
-                                            ->label('Tecnologias (Stack)'),
-                                        Forms\Components\TextInput::make('url')
-                                            ->label('URL do Projeto')
-                                            ->url(),
-                                        Forms\Components\Toggle::make('featured')
-                                            ->label('Destaque na Home'),
-                                        Forms\Components\TextInput::make('sort_order')
-                                            ->label('Ordem')
-                                            ->numeric()
-                                            ->default(0),
-                                    ]),
-                                Forms\Components\Section::make('SEO')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('seo_title')
-                                            ->label('Título SEO'),
-                                        Forms\Components\Textarea::make('seo_description')
-                                            ->label('Descrição SEO')
-                                            ->rows(2),
-                                    ]),
-                            ])
-                            ->columnSpan(1),
+                                Forms\Components\TextInput::make('client')
+                                    ->label('Cliente'),
+
+                                Forms\Components\TextInput::make('year')
+                                    ->label('Ano')
+                                    ->numeric()
+                                    ->minValue(1900)
+                                    ->maxValue((int) date('Y') + 1),
+
+                                Forms\Components\TagsInput::make('stack')
+                                    ->label('Stack'),
+
+                                Forms\Components\TextInput::make('url')
+                                    ->label('URL')
+                                    ->url(),
+                            ]),
+
+                        Section::make('SEO')
+                            ->icon('heroicon-o-magnifying-glass')
+                            ->compact()
+                            ->schema([
+                                Forms\Components\TextInput::make('seo_title')
+                                    ->label('Título SEO')
+                                    ->maxLength(60),
+
+                                Forms\Components\Textarea::make('seo_description')
+                                    ->label('Descrição SEO')
+                                    ->rows(2)
+                                    ->maxLength(160),
+                            ]),
+
+                        Section::make('Mídia')
+                            ->icon('heroicon-o-photo')
+                            ->compact()
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('cover')
+                                    ->label('Capa')
+                                    ->collection('cover')
+                                    ->image()
+                                    ->imageEditor(),
+
+                                SpatieMediaLibraryFileUpload::make('screenshots')
+                                    ->label('Galeria')
+                                    ->collection('screenshots')
+                                    ->multiple()
+                                    ->reorderable()
+                                    ->image(),
+                            ]),
                     ]),
             ]);
     }
@@ -111,67 +156,58 @@ class ProjectResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')
-                    ->label('Título')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('slug')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('client')
-                    ->label('Cliente')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('year')
-                    ->label('Ano')
-                    ->searchable(),
+                Stack::make([
+                    Tables\Columns\TextColumn::make('title')
+                        ->searchable()
+                        ->size(TextSize::Large)
+                        ->weight(FontWeight::Bold)
+                        // Ícone só aparece se for destaque
+                        ->icon(fn (Project $record) => $record->featured ? 'heroicon-o-star' : null)
+                        ->iconColor(fn (Project $record) => $record->featured ? 'warning' : null)
+                        ->iconPosition(IconPosition::After),
+
+                    Tables\Columns\TextColumn::make('client')
+                        ->icon('heroicon-o-building-office-2')
+                        ->size(TextSize::Small),
+
+                    Tables\Columns\TextColumn::make('year')
+                        ->icon('heroicon-o-calendar')
+                        ->size(TextSize::ExtraSmall),
+                ]),
+
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
                     ->badge()
+                    ->sortable()
+                    ->formatStateUsing(fn (string $state) => $state === 'published' ? 'Publicado' : 'Rascunho')
                     ->color(fn (string $state): string => match ($state) {
                         'published' => 'success',
                         'draft' => 'warning',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('url')
-                    ->searchable(),
-                Tables\Columns\IconColumn::make('featured')
-                    ->label('Destaque')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('sort_order')
-                    ->label('Ordem')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('seo_title')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                //
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                Action::make('edit')
+                    ->url(fn (Project $record): string => self::getUrl('edit', ['record' => $record]))
+                    ->icon('heroicon-o-pencil'),
+
+                Action::make('delete')
+                    ->action(fn (Project $record) => $record->delete())
+                    ->icon('heroicon-o-trash')
+                    ->color('danger')
+                    ->requiresConfirmation(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+                BulkAction::make('delete')
+                    ->requiresConfirmation()
+                    ->action(fn (Collection $records) => $records->each->delete()),
+            ])
+            ->emptyStateHeading('Nenhum projeto ainda')
+            ->emptyStateDescription('Crie seu primeiro case e comece a construir autoridade.');
     }
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array

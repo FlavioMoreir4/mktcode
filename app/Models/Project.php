@@ -13,11 +13,6 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
 
-/**
- * @method static \Illuminate\Database\Eloquent\Builder published()
- * @method static \Illuminate\Database\Eloquent\Builder ordered()
- * @method static \Illuminate\Database\Eloquent\Builder featured()
- */
 class Project extends Model implements HasMedia, Sitemapable
 {
     use HasSlug, HasTags, InteractsWithMedia, SoftDeletes;

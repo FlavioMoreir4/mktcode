@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +23,7 @@ class PostController extends Controller
             ->withQueryString();
 
         $posts->getCollection()->transform(function ($post) {
-            $post->body = tiptap_converter()->asHTML($post->body);
+            $post->body = RichContentRenderer::make($post->body)->toHtml();
 
             return $post;
         });
@@ -35,7 +36,7 @@ class PostController extends Controller
     public function show(Post $post): Response
     {
         $post->load(['author.media', 'category', 'media']);
-        $post->body = tiptap_converter()->asHTML($post->body);
+        $post->body = RichContentRenderer::make($post->body)->toHtml();
 
         return Inertia::render('public/blog/Show', [
             'post' => $post,

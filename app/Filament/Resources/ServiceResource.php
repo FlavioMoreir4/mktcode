@@ -6,21 +6,33 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ServiceResource\Pages;
 use App\Models\Service;
+use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\IconPosition;
+use Filament\Support\Enums\TextSize;
 use Filament\Tables;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ServiceResource extends Resource
 {
     protected static ?string $model = Service::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-wrench-screwdriver';
 
     protected static ?string $navigationLabel = 'Serviços';
 
-    protected static ?string $navigationGroup = 'Site';
+    protected static UnitEnum|string|null $navigationGroup = 'Site';
 
     protected static ?string $modelLabel = 'Serviço';
 
@@ -28,79 +40,98 @@ class ServiceResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
-                Forms\Components\Section::make('Informações do Serviço')
+        return $schema
+            ->columns(12)
+            ->components([
+
+                Section::make('Conteúdo do Serviço')
+                    ->description('O que é, para quem é e qual valor entrega.')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->columnSpan(8)
                     ->schema([
                         Forms\Components\TextInput::make('title')
                             ->label('Título')
                             ->required()
-                            ->maxLength(255)
-                            ->columnSpanFull(),
+                            ->maxLength(120),
 
                         Forms\Components\Textarea::make('description')
                             ->label('Descrição')
                             ->required()
                             ->rows(4)
-                            ->columnSpanFull(),
-
-                        Forms\Components\Select::make('icon')
-                            ->label('Ícone (Lucide)')
-                            ->options([
-                                'monitor' => 'Monitor',
-                                'layers' => 'Layers',
-                                'layout' => 'Layout',
-                                'globe' => 'Globe',
-                                'search-code' => 'SearchCode',
-                                'settings-2' => 'Settings2',
-                                'brain' => 'Brain',
-                                'code-2' => 'Code2',
-                                'server' => 'Server',
-                                'database' => 'Database',
-                                'cpu' => 'Cpu',
-                                'smartphone' => 'Smartphone',
-                                'shield' => 'Shield',
-                                'bar-chart' => 'BarChart',
-                                'zap' => 'Zap',
-                                'package' => 'Package',
-                            ])
-                            ->required()
-                            ->default('monitor'),
+                            ->placeholder('Explique claramente o valor do serviço...'),
 
                         Forms\Components\Textarea::make('ideal_for')
-                            ->label('Ideal Para')
+                            ->label('Ideal para')
                             ->rows(3)
-                            ->columnSpanFull(),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Funcionalidades Incluídas')
-                    ->description('Liste os itens que estão incluídos neste serviço (aparecem como checkmarks na página).')
-                    ->schema([
-                        Forms\Components\Repeater::make('features')
-                            ->label('Funcionalidades')
-                            ->schema([
-                                Forms\Components\TextInput::make('item')
-                                    ->label('Item')
-                                    ->required()
-                                    ->placeholder('Ex: Arquitetura pensada para escalar'),
-                            ])
-                            ->addActionLabel('Adicionar funcionalidade')
-                            ->reorderable()
-                            ->columnSpanFull(),
+                            ->placeholder('Ex: startups, e-commerces, SaaS...'),
                     ]),
 
-                Forms\Components\Section::make('Configurações')
+                Grid::make(1)
+                    ->columnSpan(4)
                     ->schema([
-                        Forms\Components\Toggle::make('active')
-                            ->label('Ativo no Site')
-                            ->default(true),
-                        Forms\Components\TextInput::make('sort_order')
-                            ->label('Ordem de Exibição')
-                            ->numeric()
-                            ->default(0),
-                    ])->columns(2),
+
+                        Section::make('Identidade')
+                            ->icon('heroicon-o-sparkles')
+                            ->compact()
+                            ->schema([
+                                Forms\Components\Select::make('icon')
+                                    ->label('Ícone')
+                                    ->options([
+                                        'monitor' => 'Monitor',
+                                        'layers' => 'Layers',
+                                        'layout' => 'Layout',
+                                        'globe' => 'Globe',
+                                        'search-code' => 'SearchCode',
+                                        'settings-2' => 'Settings2',
+                                        'brain' => 'Brain',
+                                        'code-2' => 'Code2',
+                                        'server' => 'Server',
+                                        'database' => 'Database',
+                                        'cpu' => 'Cpu',
+                                        'smartphone' => 'Smartphone',
+                                        'shield' => 'Shield',
+                                        'bar-chart' => 'BarChart',
+                                        'zap' => 'Zap',
+                                        'package' => 'Package',
+                                    ])
+                                    ->required()
+                                    ->default('monitor')
+                                    ->native(false),
+                            ]),
+
+                        Section::make('Configuração')
+                            ->icon('heroicon-o-cog-6-tooth')
+                            ->compact()
+                            ->schema([
+                                Forms\Components\Toggle::make('active')
+                                    ->label('Ativo')
+                                    ->helperText('Visível no site')
+                                    ->default(true),
+
+                                Forms\Components\TextInput::make('sort_order')
+                                    ->label('Ordem')
+                                    ->numeric()
+                                    ->default(0),
+                            ]),
+                    ]),
+
+                Section::make('Funcionalidades')
+                    ->description('O que está incluso (aparece como lista de benefícios).')
+                    ->icon('heroicon-o-check-badge')
+                    ->columnSpanFull()
+                    ->schema([
+                        Forms\Components\Repeater::make('features')
+                            ->label('Itens incluídos')
+                            ->schema([
+                                Forms\Components\TextInput::make('item')
+                                    ->required()
+                                    ->placeholder('Ex: Arquitetura escalável'),
+                            ])
+                            ->addActionLabel('Adicionar item')
+                            ->reorderable(),
+                    ]),
             ]);
     }
 
@@ -108,44 +139,50 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
+
+                Stack::make([
+                    Tables\Columns\TextColumn::make('title')
+                        ->searchable()
+                        ->weight(FontWeight::Bold)
+                        ->size(TextSize::Large)
+                        ->icon(fn ($record) => $record->active ? 'heroicon-o-check-circle' : 'heroicon-o-eye-slash')
+                        ->iconColor(fn ($record) => $record->active ? 'success' : 'danger')
+                        ->iconPosition(IconPosition::Before),
+                ]),
+
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('#')
                     ->sortable()
+                    ->formatStateUsing(fn ($record) => 'Ordem: '.$record->sort_order)
                     ->width(50),
-                Tables\Columns\TextColumn::make('title')
-                    ->label('Título')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('icon')
-                    ->label('Ícone')
-                    ->badge()
-                    ->color('gray'),
-                Tables\Columns\IconColumn::make('active')
-                    ->label('Ativo')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('features')
-                    ->label('Funcionalidades')
-                    ->formatStateUsing(fn ($state) => count((array) $state).' itens'),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Atualizado')
-                    ->dateTime('d/m/Y')
+                    ->since()
                     ->sortable(),
             ])
+
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
+
             ->filters([
                 Tables\Filters\TernaryFilter::make('active')
                     ->label('Ativos'),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+
+            ->groupedBulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+
+            ->emptyStateHeading('Nenhum serviço ainda')
+            ->emptyStateDescription('Crie serviços claros e orientados a valor.');
     }
 
     public static function getPages(): array

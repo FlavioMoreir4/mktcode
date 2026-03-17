@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,7 +22,7 @@ class ProjectController extends Controller
             ->withQueryString();
 
         $projects->getCollection()->transform(function ($project) {
-            $project->content = tiptap_converter()->asHTML($project->content);
+            $project->content = RichContentRenderer::make($project->content)->toHtml();
 
             return $project;
         });
@@ -34,7 +35,7 @@ class ProjectController extends Controller
     public function show(Project $project): Response
     {
         $project->load('media');
-        $project->content = tiptap_converter()->asHTML($project->content);
+        $project->content = RichContentRenderer::make($project->content)->toHtml();
 
         return Inertia::render('public/project/Show', [
             'project' => $project,

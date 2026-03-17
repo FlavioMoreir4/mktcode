@@ -7,6 +7,7 @@ namespace App\Http\Resources\Public;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\User;
+use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -37,7 +38,7 @@ class UserPublicResource extends JsonResource
                 'slug' => $post->slug,
                 'excerpt' => $post->excerpt,
                 'published_at' => $post->published_at,
-                'body' => tiptap_converter()->asHTML($post->getRawOriginal('body')),
+                'body' => RichContentRenderer::make($post->body)->toHtml(),
                 'category' => $post->relationLoaded('category') && $post->category
                     ? ['name' => $post->category->name]
                     : null,
@@ -47,7 +48,7 @@ class UserPublicResource extends JsonResource
                 'title' => $project->title,
                 'slug' => $project->slug,
                 'description' => $project->description,
-                'content' => tiptap_converter()->asHTML($project->getRawOriginal('content')),
+                'content' => RichContentRenderer::make($project->content)->toHtml(),
                 'client' => $project->client,
                 'year' => $project->year,
                 'stack' => $project->stack,
