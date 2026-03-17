@@ -3,6 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
+use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,10 +22,12 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Sitemap\Contracts\Sitemapable;
 use Spatie\Sitemap\Tags\Url;
 
-class User extends Authenticatable implements FilamentUser, HasMedia, Sitemapable
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, Sitemapable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, InteractsWithMedia, Notifiable, TwoFactorAuthenticatable;
+    use InteractsWithAppAuthentication;
+    use InteractsWithAppAuthenticationRecovery;
+    use InteractsWithEmailAuthentication;
 
     public function canAccessPanel(Panel $panel): bool
     {

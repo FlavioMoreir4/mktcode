@@ -13,6 +13,7 @@ use App\Services\Telegram\TelegramNotifier;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -39,6 +40,10 @@ class AppServiceProvider extends ServiceProvider
             \URL::forceRootUrl(config('app.url'));
             \URL::forceScheme('https');
         }
+
+        Gate::before(function ($user, $ability) {
+            return $user->hasRole('super_admin') ? true : null;
+        });
 
         Post::observe(PostObserver::class);
         Project::observe(ProjectObserver::class);
