@@ -1,20 +1,26 @@
 {
     "agents": [
-        "gemini"
+        "gemini",
+        "copilot",
+        "claude_code"
     ],
     "guidelines": true,
     "herd_mcp": false,
     "mcp": true,
     "nightwatch_mcp": false,
     "packages": [
-        "laravel/fortify"
+        "laravel/fortify",
+        "filament/filament",
+        "spatie/laravel-medialibrary"
     ],
     "sail": false,
     "skills": [
         "wayfinder-development",
+        "livewire-development",
         "pest-testing",
         "inertia-vue-development",
         "tailwindcss-development",
-        "fortify-development"
+        "fortify-development",
+        "medialibrary-development"
     ]
 }
