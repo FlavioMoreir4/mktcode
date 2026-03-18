@@ -44,7 +44,6 @@ class UserResource extends Resource
                     ->columnSpanFull()
                     ->tabs([
 
-                        // ───── CONTA ─────
                         Tab::make('Conta')
                             ->icon('heroicon-o-user-circle')
                             ->schema([
@@ -72,7 +71,6 @@ class UserResource extends Resource
                                 ]),
                             ]),
 
-                        // ───── PERFIL ─────
                         Tab::make('Perfil')
                             ->icon('heroicon-o-identification')
                             ->schema([
@@ -92,7 +90,6 @@ class UserResource extends Resource
                                 ]),
                             ]),
 
-                        // ───── BIO ─────
                         Tab::make('Bio')
                             ->icon('heroicon-o-document-text')
                             ->schema([
@@ -101,7 +98,6 @@ class UserResource extends Resource
                                     ->columnSpanFull(),
                             ]),
 
-                        // ───── REDES ─────
                         Tab::make('Redes')
                             ->icon('heroicon-o-share')
                             ->schema([
@@ -128,7 +124,6 @@ class UserResource extends Resource
                                     ->reorderable(),
                             ]),
 
-                        // ───── MÍDIA ─────
                         Tab::make('Mídia')
                             ->icon('heroicon-o-photo')
                             ->schema([

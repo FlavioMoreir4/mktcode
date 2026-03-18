@@ -27,8 +27,7 @@ class LatestInquiries extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => Inquiry::query()
-                ->orderByDesc(fn ($q) => $q->selectRaw("status = 'new'"))
+            ->query(fn (): Builder => Inquiry::prioritizeNew()
                 ->latest()
                 ->limit(5)
             )

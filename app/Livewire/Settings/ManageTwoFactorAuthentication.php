@@ -13,8 +13,11 @@ use Livewire\Component;
 class ManageTwoFactorAuthentication extends Component
 {
     public bool $showingQrCode = false;
+
     public bool $showingRecoveryCodes = false;
+
     public bool $showingConfirmation = false;
+
     public string $code = '';
 
     public function mount(): void

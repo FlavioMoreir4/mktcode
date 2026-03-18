@@ -13,34 +13,16 @@ class ActivityChart extends ChartWidget
 
     protected function getData(): array
     {
-        // 🔥 1 query só (agrupada)
-        $data = Inquiry::selectRaw('
-                DATE(created_at) as date,
-                COUNT(*) as total
-            ')
-            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
-            ->groupBy('date')
-            ->pluck('total', 'date');
-
-        // 📊 garantir 7 dias completos (mesmo sem dados)
-        $labels = collect(range(6, 0))->map(function ($i) {
-            return now()->subDays($i)->format('d/m');
-        });
-
-        $values = collect(range(6, 0))->map(function ($i) use ($data) {
-            $date = now()->subDays($i)->toDateString();
-
-            return $data[$date] ?? 0;
-        });
+        $chartData = Inquiry::getActivityChartData(7);
 
         return [
             'datasets' => [
                 [
                     'label' => 'Mensagens',
-                    'data' => $values,
+                    'data' => $chartData['values'],
                 ],
             ],
-            'labels' => $labels,
+            'labels' => $chartData['labels'],
         ];
     }
 

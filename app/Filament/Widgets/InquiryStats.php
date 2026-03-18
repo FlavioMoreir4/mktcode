@@ -10,50 +10,10 @@ class InquiryStats extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $driver = config('database.default');
-
-        // 🔥 1 QUERY BASE (status + atrasadas)
-        $counts = Inquiry::selectRaw("
-                SUM(status = 'new') as pending,
-                SUM(status = 'in_progress') as in_progress,
-                SUM(status = 'resolved') as resolved,
-                SUM(DATE(created_at) = DATE('now')) as today,
-                SUM(status = 'new' AND created_at < ?) as late
-            ", [now()->subHours(24)])
-            ->first();
-
-        // 🔥 tempo médio
-        $avgResponseTime = Inquiry::whereNotNull('updated_at')
-            ->whereColumn('updated_at', '>', 'created_at')
-            ->when($driver === 'sqlite', fn ($q) => $q->selectRaw("
-                AVG((strftime('%s', updated_at) - strftime('%s', created_at)) / 3600.0)
-            "))
-            ->when($driver !== 'sqlite', fn ($q) => $q->selectRaw('
-                AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at))
-            '))
-            ->value('avg');
-
-        $avgResponseTime = round($avgResponseTime ?? 0, 1);
-
-        // 🔥 SLA
-        $sla = Inquiry::whereNotNull('updated_at')
-            ->whereColumn('updated_at', '>', 'created_at')
-            ->where(function ($q) use ($driver) {
-                if ($driver === 'sqlite') {
-                    $q->whereRaw("
-                        (strftime('%s', updated_at) - strftime('%s', created_at)) <= 86400
-                    ");
-                } else {
-                    $q->whereRaw('
-                        TIMESTAMPDIFF(HOUR, created_at, updated_at) <= 24
-                    ');
-                }
-            })
-            ->count();
-
-        $totalResolved = Inquiry::whereNotNull('updated_at')
-            ->whereColumn('updated_at', '>', 'created_at')
-            ->count();
+        $counts = Inquiry::getDashboardCounts();
+        $avgResponseTime = Inquiry::getAvgResponseTime();
+        $sla = Inquiry::resolved()->metSla()->count();
+        $totalResolved = Inquiry::resolved()->count();
 
         $slaRate = $totalResolved > 0
             ? round(($sla / $totalResolved) * 100)
@@ -69,7 +29,6 @@ class InquiryStats extends StatsOverviewWidget
 
         return [
 
-            // 📊 VOLUME
             Stat::make('Novas', $counts->pending ?? 0)
                 ->description(($counts->today ?? 0).' hoje')
                 ->color('warning'),
@@ -81,7 +40,6 @@ class InquiryStats extends StatsOverviewWidget
                 ->description("Taxa: {$resolutionRate}%")
                 ->color('success'),
 
-            // ⚡ PERFORMANCE
             Stat::make('Atrasadas', $counts->late ?? 0)
                 ->description('> 24h sem resposta')
                 ->color('danger'),

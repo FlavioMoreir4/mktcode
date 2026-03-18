@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +37,7 @@ class Post extends Model implements HasMedia, Sitemapable
         return [
             'published_at' => 'datetime',
             'body' => 'array',
+            'status' => PostStatus::class,
         ];
     }
 
@@ -57,7 +59,7 @@ class Post extends Model implements HasMedia, Sitemapable
     public function scopePublished(Builder $query): Builder
     {
         return $query
-            ->where('status', 'published')
+            ->where('status', PostStatus::Published)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
     }

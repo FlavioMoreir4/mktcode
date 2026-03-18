@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PostStatus;
 use App\Filament\Resources\PostResource\Pages;
 use App\Models\Post;
 use BackedEnum;
@@ -81,11 +82,8 @@ class PostResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('status')
                                     ->label('Status')
-                                    ->options([
-                                        'draft' => 'Rascunho',
-                                        'published' => 'Publicado',
-                                    ])
-                                    ->default('draft')
+                                    ->options(PostStatus::class)
+                                    ->default(PostStatus::Draft)
                                     ->required()
                                     ->native(false),
 
@@ -157,7 +155,7 @@ class PostResource extends Resource
                 SpatieMediaLibraryImageColumn::make('cover')
                     ->collection('cover')
                     ->width(70)
-                    ->height(50)
+                    ->imageHeight(50)
                     ->label(''),
 
                 Stack::make([
@@ -188,14 +186,12 @@ class PostResource extends Resource
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn ($record) => match (true) {
-                        $record->status === 'draft' => 'Rascunho',
-                        $record->published_at && $record->published_at->isFuture() => 'Agendado',
-                        default => 'Publicado',
+                        $record->published_at && $record->published_at->isFuture() => PostStatus::Scheduled->getLabel(),
+                        default => $record->status->getLabel(),
                     })
                     ->color(fn ($record) => match (true) {
-                        $record->status === 'draft' => 'gray',
-                        $record->published_at && $record->published_at->isFuture() => 'warning',
-                        default => 'success',
+                        $record->published_at && $record->published_at->isFuture() => PostStatus::Scheduled->getColor(),
+                        default => $record->status->getColor(),
                     }),
 
                 Tables\Columns\TextColumn::make('published_at')

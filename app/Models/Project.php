@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -39,6 +40,7 @@ class Project extends Model implements HasMedia, Sitemapable
             'stack' => 'array',
             'featured' => 'boolean',
             'content' => 'array',
+            'status' => ProjectStatus::class,
         ];
     }
 
@@ -59,7 +61,7 @@ class Project extends Model implements HasMedia, Sitemapable
 
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', 'published')->orderBy('sort_order');
+        return $query->where('status', ProjectStatus::Published)->orderBy('sort_order');
     }
 
     public function scopeOrdered(Builder $query): Builder

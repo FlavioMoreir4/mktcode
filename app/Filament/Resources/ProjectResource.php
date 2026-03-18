@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProjectStatus;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Models\Project;
 use BackedEnum;
@@ -78,11 +79,8 @@ class ProjectResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('status')
                                     ->label('Status')
-                                    ->options([
-                                        'draft' => 'Rascunho',
-                                        'published' => 'Publicado',
-                                    ])
-                                    ->default('draft')
+                                    ->options(ProjectStatus::class)
+                                    ->default(ProjectStatus::Draft)
                                     ->required()
                                     ->native(false),
 
@@ -178,12 +176,8 @@ class ProjectResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->sortable()
-                    ->formatStateUsing(fn (string $state) => $state === 'published' ? 'Publicado' : 'Rascunho')
-                    ->color(fn (string $state): string => match ($state) {
-                        'published' => 'success',
-                        'draft' => 'warning',
-                        default => 'gray',
-                    }),
+                    ->formatStateUsing(fn (ProjectStatus $state): string => $state->getLabel())
+                    ->color(fn (ProjectStatus $state): string => $state->getColor()),
             ])
             ->recordActions([
                 Action::make('edit')

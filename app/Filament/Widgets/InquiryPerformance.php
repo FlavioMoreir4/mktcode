@@ -10,47 +10,10 @@ class InquiryPerformance extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        // 🔥 1 query para contadores
-        $counts = Inquiry::selectRaw("
-                SUM(status = 'new') as pending,
-                SUM(status = 'new' AND created_at < ?) as late
-            ", [now()->subHours(24)])
-            ->first();
-
-        $driver = config('database.default');
-
-        // 🔥 tempo médio (corrigido e mais preciso)
-        $avgResponseTime = Inquiry::whereNotNull('updated_at')
-            ->whereColumn('updated_at', '>', 'created_at') // evita lixo
-            ->when($driver === 'sqlite', fn ($q) => $q->selectRaw("
-                AVG((strftime('%s', updated_at) - strftime('%s', created_at)) / 3600.0)
-            "))
-            ->when($driver !== 'sqlite', fn ($q) => $q->selectRaw('
-                AVG(TIMESTAMPDIFF(HOUR, created_at, updated_at))
-            '))
-            ->value('avg');
-
-        $avgResponseTime = round($avgResponseTime ?? 0, 1);
-
-        // 🎯 SLA (% resolvido em até 24h)
-        $sla = Inquiry::whereNotNull('updated_at')
-            ->whereColumn('updated_at', '>', 'created_at')
-            ->where(function ($q) use ($driver) {
-                if ($driver === 'sqlite') {
-                    $q->whereRaw("
-                        (strftime('%s', updated_at) - strftime('%s', created_at)) <= 86400
-                    ");
-                } else {
-                    $q->whereRaw('
-                        TIMESTAMPDIFF(HOUR, created_at, updated_at) <= 24
-                    ');
-                }
-            })
-            ->count();
-
-        $totalResolved = Inquiry::whereNotNull('updated_at')
-            ->whereColumn('updated_at', '>', 'created_at')
-            ->count();
+        $counts = Inquiry::getDashboardCounts();
+        $avgResponseTime = Inquiry::getAvgResponseTime();
+        $sla = Inquiry::resolved()->metSla()->count();
+        $totalResolved = Inquiry::resolved()->count();
 
         $slaRate = $totalResolved > 0
             ? round(($sla / $totalResolved) * 100)

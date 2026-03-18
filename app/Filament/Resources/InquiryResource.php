@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\InquiryStatus;
 use App\Filament\Resources\InquiryResource\Pages;
 use App\Models\Inquiry;
+use App\Support\WhatsApp;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -38,7 +40,6 @@ class InquiryResource extends Resource
 
     protected static ?string $navigationLabel = 'Mensagens';
 
-    // 🔥 Badge no menu = radar de oportunidade
     public static function getNavigationBadge(): ?string
     {
         return (string) static::getModel()::where('status', 'new')->count();
@@ -77,13 +78,8 @@ class InquiryResource extends Resource
                                     ->compact()
                                     ->schema([
                                         Forms\Components\Select::make('status')
-                                            ->options([
-                                                'new' => 'Novo',
-                                                'in_progress' => 'Em atendimento',
-                                                'resolved' => 'Resolvido',
-                                                'archived' => 'Arquivado',
-                                            ])
-                                            ->default('new')
+                                            ->options(InquiryStatus::class)
+                                            ->default(InquiryStatus::New)
                                             ->native(false),
 
                                         Forms\Components\Textarea::make('notes')
@@ -112,7 +108,6 @@ class InquiryResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
 
-            // 🔥 Prioriza automaticamente mensagens novas
             ->modifyQueryUsing(fn (Builder $query) => $query->orderByRaw("CASE WHEN status = 'new' THEN 0 ELSE 1 END")
             )
 
@@ -139,20 +134,7 @@ class InquiryResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'new' => 'gray',
-                        'in_progress' => 'warning',
-                        'resolved' => 'success',
-                        'archived' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'new' => 'Novo',
-                        'in_progress' => 'Em atendimento',
-                        'resolved' => 'Resolvido',
-                        'archived' => 'Arquivado',
-                        default => $state,
-                    }),
+                    ->color(fn (InquiryStatus $state): string => $state->getColor()),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Recebido')
@@ -160,39 +142,32 @@ class InquiryResource extends Resource
                     ->sortable(),
             ])
 
-            // 🔥 Destaque visual para novos
-            ->recordClasses(fn (Inquiry $record) => $record->status === 'new'
+            ->recordClasses(fn (Inquiry $record) => $record->status === InquiryStatus::New
                     ? 'bg-gray-50 dark:bg-gray-800/40'
                     : null
             )
 
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'new' => 'Novo',
-                        'in_progress' => 'Em atendimento',
-                        'resolved' => 'Resolvido',
-                        'archived' => 'Arquivado',
-                    ]),
+                    ->options(InquiryStatus::class),
             ])
 
             ->recordActions([
                 ActionGroup::make([
 
-                    // 🔥 Ação rápida = reduz fricção absurda
                     Action::make('atender')
                         ->label('Atender')
                         ->icon('heroicon-o-play')
                         ->color('warning')
-                        ->visible(fn (Inquiry $record) => $record->status === 'new')
-                        ->action(fn (Inquiry $record) => $record->update(['status' => 'in_progress'])),
+                        ->visible(fn (Inquiry $record) => $record->status === InquiryStatus::New)
+                        ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::InProgress])),
 
                     Action::make('resolver')
                         ->label('Resolver')
                         ->icon('heroicon-o-check')
                         ->color('success')
-                        ->visible(fn (Inquiry $record) => $record->status !== 'resolved')
-                        ->action(fn (Inquiry $record) => $record->update(['status' => 'resolved'])),
+                        ->visible(fn (Inquiry $record) => $record->status !== InquiryStatus::Resolved)
+                        ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::Resolved])),
 
                     ViewAction::make(),
                     EditAction::make(),
@@ -200,7 +175,7 @@ class InquiryResource extends Resource
                     Action::make('whatsapp')
                         ->icon('heroicon-o-chat-bubble-left-right')
                         ->color('success')
-                        ->url(fn (Inquiry $record): string => 'https://wa.me/'.preg_replace('/\D/', '', $record->whatsapp))
+                        ->url(fn (Inquiry $record): ?string => WhatsApp::makeLink($record->whatsapp))
                         ->openUrlInNewTab(),
 
                     Action::make('email')
@@ -217,7 +192,7 @@ class InquiryResource extends Resource
                     BulkAction::make('marcar_como_resolvido')
                         ->label('Marcar como resolvido')
                         ->icon('heroicon-o-check')
-                        ->action(fn ($records) => $records->each->update(['status' => 'resolved'])),
+                        ->action(fn ($records) => $records->each->update(['status' => InquiryStatus::Resolved])),
 
                     DeleteBulkAction::make(),
                 ]),
