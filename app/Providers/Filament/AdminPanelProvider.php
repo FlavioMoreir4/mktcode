@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\AdminDashboard;
@@ -41,6 +43,11 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->colors([
                 'primary' => Color::Neutral,
+                'secondary' => Color::Blue,
+                'success' => Color::Green,
+                'danger' => Color::Red,
+                'warning' => Color::Yellow,
+                'info' => Color::Cyan,
             ])
             ->profile(EditProfile::class)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
@@ -67,6 +74,11 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+
+            ->brandLogo(asset('android-chrome-512x512.png'))
+            ->brandName('MKTCode')
+            ->favicon(asset('favicon.ico'))
+
             ->navigationItems([
                 NavigationItem::make('Voltar para o site')
                     ->url(url('/'))

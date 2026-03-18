@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Models\Post;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,8 +40,8 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         if (app()->isProduction()) {
-            \URL::forceRootUrl(config('app.url'));
-            \URL::forceScheme('https');
+            URL::forceRootUrl(config('app.url'));
+            URL::forceScheme('https');
         }
 
         Gate::before(function ($user, $ability) {

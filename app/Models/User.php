@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -36,11 +38,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     use Notifiable;
     use TwoFactorAuthenticatable;
 
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return true; // Por enquanto liberado, o Shield cuidará das permissões finas.
-    }
-
     /**
      * The attributes that are mass assignable.
      *
@@ -70,6 +67,11 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     ];
 
     protected $appends = ['profile_photo_url', 'cover_photo_url'];
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true; // Por enquanto liberado, o Shield cuidará das permissões finas.
+    }
 
     /**
      * Get the attributes that should be cast.

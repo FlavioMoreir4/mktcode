@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 import VueDevTools from 'vite-plugin-vue-devtools';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
     plugins: [
@@ -19,6 +20,9 @@ export default defineConfig({
                     base: null,
                     includeAbsolute: false,
                 },
+                compilerOptions: {
+                    isCustomElement: (tag) => tag.startsWith('swiper-'),
+                },
             },
         }),
         wayfinder({
@@ -27,5 +31,9 @@ export default defineConfig({
         VueDevTools({
             appendTo: 'resources/js/app.ts',
         }),
+        visualizer(),
     ],
+    build: {
+        sourcemap: true,
+    },
 });

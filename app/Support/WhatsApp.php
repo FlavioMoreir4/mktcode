@@ -18,12 +18,12 @@ class WhatsApp
             return null;
         }
 
-        if (strlen($numbersOnly) >= 10 && strlen($numbersOnly) <= 11) {
+        if (mb_strlen($numbersOnly) >= 10 && mb_strlen($numbersOnly) <= 11) {
             $numbersOnly = '55'.$numbersOnly;
         }
 
         // WhatsApp numbers (in Brazil) typically have 12 to 13 digits (55 + DDD (2) + 8 or 9 digits)
-        if (strlen($numbersOnly) < 12 || strlen($numbersOnly) > 13) {
+        if (mb_strlen($numbersOnly) < 12 || mb_strlen($numbersOnly) > 13) {
             return null;
         }
 
