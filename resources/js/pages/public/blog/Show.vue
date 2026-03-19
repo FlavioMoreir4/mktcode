@@ -488,6 +488,18 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+@media (prefers-color-scheme: dark) {
+    .phiki,
+    .phiki span,
+    .phiki code {
+        /* color: var(--phiki-dark-color) !important; */
+        background-color: #0d1117 !important;
+        /* font-style: var(--phiki-dark-font-style) !important; */
+        /* font-weight: var(--phiki-dark-font-weight) !important; */
+        /* text-decoration: var(--phiki-dark-text-decoration) !important; */
+    }
+}
+
 @keyframes fade-in-up {
     from {
         opacity: 0;

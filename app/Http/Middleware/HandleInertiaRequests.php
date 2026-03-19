@@ -39,6 +39,24 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'site' => [
+                'name' => config('site.name', 'MC - Marketing & Code'),
+                'url' => config('site.url', route('home')),
+                'description' => config('site.description', 'Marketing & Code'),
+                'og_image' => config('site.og_image', ''),
+                'keywords' => config('site.keywords', ''),
+                'author' => config('site.author', 'MC - Marketing & Code'),
+            ],
+
+            'seo' => [
+                'title' => config('site.name', 'MC - Marketing & Code'),
+                'description' => config('site.description', 'Marketing & Code'),
+                'image' => config('site.og_image', ''),
+                'url' => config('site.url', route('home')),
+                'type' => 'website',
+            ],
+
+            // TODO: Revisar no futuro
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),

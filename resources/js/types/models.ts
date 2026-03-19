@@ -77,6 +77,12 @@ export interface Post {
     updated_at: string;
     deleted_at: string | null;
 
+    word_count: number;
+    reading_time: number;
+    plain_text: string;
+    markdown: string;
+    html: string;
+
     // Relationships
     author?: User;
     category?: Category;
@@ -155,4 +161,18 @@ export interface PaginatedResponse<T> {
     prev_page_url: string | null;
     to: number | null;
     total: number;
+    meta: {
+        current_page: number;
+        from: number | null;
+        last_page: number;
+        links: {
+            url: string | null;
+            label: string;
+            active: boolean;
+            page: number | null;
+        }[];
+        per_page: number;
+        to: number | null;
+        total: number;
+    };
 }

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6fb2d918b8ad4798354d9cfe950a0f59",
+    "content-hash": "f39dffdeecc91a2b09d4886b9090d3c8",
     "packages": [
         {
             "name": "artesaos/seotools",
@@ -76,6 +76,90 @@
                 "source": "https://github.com/artesaos/seotools"
             },
             "time": "2025-03-07T14:44:43+00:00"
+        },
+        {
+            "name": "awcodes/richer-editor",
+            "version": "v2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/awcodes/richer-editor.git",
+                "reference": "82e0ee43cf572db7e9cd66a9ba0ea90f4072af19"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/awcodes/richer-editor/zipball/82e0ee43cf572db7e9cd66a9ba0ea90f4072af19",
+                "reference": "82e0ee43cf572db7e9cd66a9ba0ea90f4072af19",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "filament/forms": "^5.0",
+                "league/html-to-markdown": "*",
+                "phiki/phiki": "^2.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.15.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^8.0",
+                "orchestra/testbench": "^9.0|^10.0",
+                "pestphp/pest": "^4.3",
+                "pestphp/pest-plugin-laravel": "^4.0",
+                "pestphp/pest-plugin-livewire": "^4.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "rector/rector": "^2.0",
+                "spatie/laravel-ray": "^1.26"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "RicherEditor": "Awcodes\\RicherEditor\\Facades\\RicherEditor"
+                    },
+                    "providers": [
+                        "Awcodes\\RicherEditor\\RicherEditorServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Awcodes\\RicherEditor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Adam Weston",
+                    "email": "awcodes1@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A collection of extensions and tools to enhance the Filament Rich Editor field.",
+            "homepage": "https://github.com/awcodes/richer-editor",
+            "keywords": [
+                "awcodes",
+                "filament",
+                "filamentphp",
+                "laravel",
+                "richer-editor"
+            ],
+            "support": {
+                "issues": "https://github.com/awcodes/richer-editor/issues",
+                "source": "https://github.com/awcodes/richer-editor"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/awcodes",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-02-05T16:31:14+00:00"
         },
         {
             "name": "bacon/bacon-qr-code",
@@ -3607,6 +3691,95 @@
             "time": "2026-01-23T15:30:45+00:00"
         },
         {
+            "name": "league/html-to-markdown",
+            "version": "5.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/html-to-markdown.git",
+                "reference": "0b4066eede55c48f38bcee4fb8f0aa85654390fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/html-to-markdown/zipball/0b4066eede55c48f38bcee4fb8f0aa85654390fd",
+                "reference": "0b4066eede55c48f38bcee4fb8f0aa85654390fd",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-xml": "*",
+                "php": "^7.2.5 || ^8.0"
+            },
+            "require-dev": {
+                "mikehaertl/php-shellcommand": "^1.1.0",
+                "phpstan/phpstan": "^1.8.8",
+                "phpunit/phpunit": "^8.5 || ^9.2",
+                "scrutinizer/ocular": "^1.6",
+                "unleashedtech/php-coding-standard": "^2.7 || ^3.0",
+                "vimeo/psalm": "^4.22 || ^5.0"
+            },
+            "bin": [
+                "bin/html-to-markdown"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "5.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "League\\HTMLToMarkdown\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Colin O'Dell",
+                    "email": "colinodell@gmail.com",
+                    "homepage": "https://www.colinodell.com",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Nick Cernis",
+                    "email": "nick@cern.is",
+                    "homepage": "http://modernnerd.net",
+                    "role": "Original Author"
+                }
+            ],
+            "description": "An HTML-to-markdown conversion helper for PHP",
+            "homepage": "https://github.com/thephpleague/html-to-markdown",
+            "keywords": [
+                "html",
+                "markdown"
+            ],
+            "support": {
+                "issues": "https://github.com/thephpleague/html-to-markdown/issues",
+                "source": "https://github.com/thephpleague/html-to-markdown/tree/5.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.colinodell.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://www.paypal.me/colinpodell/10.00",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/colinodell",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/league/html-to-markdown",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2023-07-12T21:21:09+00:00"
+        },
+        {
             "name": "league/mime-type-detection",
             "version": "1.16.0",
             "source": {
@@ -4081,6 +4254,73 @@
                 }
             ],
             "time": "2025-12-10T09:58:31+00:00"
+        },
+        {
+            "name": "masterminds/html5",
+            "version": "2.10.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Masterminds/html5-php.git",
+                "reference": "fcf91eb64359852f00d921887b219479b4f21251"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Masterminds/html5-php/zipball/fcf91eb64359852f00d921887b219479b4f21251",
+                "reference": "fcf91eb64359852f00d921887b219479b4f21251",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.8.35 || ^5.7.21 || ^6 || ^7 || ^8 || ^9"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.7-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Masterminds\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Matt Butcher",
+                    "email": "technosophos@gmail.com"
+                },
+                {
+                    "name": "Matt Farina",
+                    "email": "matt@mattfarina.com"
+                },
+                {
+                    "name": "Asmir Mustafic",
+                    "email": "goetas@gmail.com"
+                }
+            ],
+            "description": "An HTML5 parser and serializer.",
+            "homepage": "http://masterminds.github.io/html5-php",
+            "keywords": [
+                "HTML5",
+                "dom",
+                "html",
+                "parser",
+                "querypath",
+                "serializer",
+                "xml"
+            ],
+            "support": {
+                "issues": "https://github.com/Masterminds/html5-php/issues",
+                "source": "https://github.com/Masterminds/html5-php/tree/2.10.0"
+            },
+            "time": "2025-07-25T09:04:22+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -4828,6 +5068,77 @@
                 "source": "https://github.com/paragonie/constant_time_encoding"
             },
             "time": "2025-09-24T15:06:41+00:00"
+        },
+        {
+            "name": "phiki/phiki",
+            "version": "v2.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phikiphp/phiki.git",
+                "reference": "546c7d6fca490c6597fbeb2381de28a79c76643d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phikiphp/phiki/zipball/546c7d6fca490c6597fbeb2381de28a79c76643d",
+                "reference": "546c7d6fca490c6597fbeb2381de28a79c76643d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "league/commonmark": "^2.5.3",
+                "php": "^8.2",
+                "psr/simple-cache": "^3.0"
+            },
+            "require-dev": {
+                "illuminate/support": "^11.45",
+                "laravel/pint": "^1.18.1",
+                "orchestra/testbench": "^9.15",
+                "pestphp/pest": "^3.5.1",
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan": "^2.0",
+                "symfony/var-dumper": "^7.1.6"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Phiki\\Adapters\\Laravel\\PhikiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Phiki\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ryan Chandler",
+                    "email": "support@ryangjchandler.co.uk",
+                    "homepage": "https://ryangjchandler.co.uk",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Syntax highlighting using TextMate grammars in PHP.",
+            "support": {
+                "issues": "https://github.com/phikiphp/phiki/issues",
+                "source": "https://github.com/phikiphp/phiki/tree/v2.1.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/sponsors/ryangjchandler",
+                    "type": "github"
+                },
+                {
+                    "url": "https://buymeacoffee.com/ryangjchandler",
+                    "type": "other"
+                }
+            ],
+            "time": "2026-03-18T20:23:32+00:00"
         },
         {
             "name": "phpoption/phpoption",

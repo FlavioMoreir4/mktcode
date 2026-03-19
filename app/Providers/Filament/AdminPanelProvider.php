@@ -41,6 +41,7 @@ class AdminPanelProvider extends PanelProvider
             ->emailVerification()
             ->emailChangeVerification()
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
                 'primary' => Color::Neutral,
                 'secondary' => Color::Blue,

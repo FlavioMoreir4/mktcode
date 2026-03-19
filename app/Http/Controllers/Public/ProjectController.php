@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Public\PublicProjectCollection;
 use App\Models\Project;
 use Filament\Forms\Components\RichEditor\RichContentRenderer;
 use Illuminate\Http\Request;
@@ -15,20 +16,13 @@ class ProjectController extends Controller
 {
     public function index(Request $request): Response
     {
-        $projects = Project::with('media')
-            ->published()
-            ->ordered()
-            ->paginate(10)
+        $projects = Project::publicOrdered()
+            ->with('media')
+            ->paginate(9)
             ->withQueryString();
 
-        $projects->getCollection()->transform(function ($project) {
-            $project->content = RichContentRenderer::make($project->content)->toHtml();
-
-            return $project;
-        });
-
         return Inertia::render('public/project/Index', [
-            'projects' => $projects,
+            'projects' => new PublicProjectCollection($projects),
         ]);
     }
 

@@ -22,7 +22,7 @@ const props = defineProps<{
 
 // ─── Featured = first post on page 1, otherwise none ─────────────────────────
 const featuredPost = computed(() =>
-    props.posts.current_page === 1 ? (props.posts.data[0] ?? null) : null,
+    props.posts.meta.current_page === 1 ? (props.posts.data[0] ?? null) : null,
 );
 
 const restPosts = computed(() =>
@@ -195,7 +195,7 @@ onUnmounted(() => observer?.disconnect());
                                 <span class="text-border">·</span>
                                 <span class="flex items-center gap-1.5">
                                     <Clock class="h-3.5 w-3.5" />
-                                    {{ readingTime(featuredPost) }} min
+                                    {{ featuredPost.reading_time }} min
                                 </span>
                             </div>
 

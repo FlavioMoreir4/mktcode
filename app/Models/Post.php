@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\PostStatus;
+use App\Filament\Resources\Concerns\HasRichEditorRendering;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -16,15 +19,19 @@ use Spatie\Sitemap\Tags\Url;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
+use Spatie\Tags\Tag;
 
 class Post extends Model implements HasMedia, Sitemapable
 {
+    use HasRichEditorRendering;
     use HasSlug, HasTags, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'title',
         'slug',
         'body',
+        'body_markdown',
+        'content_format',
         'excerpt',
         'status',
         'published_at',
@@ -63,7 +70,7 @@ class Post extends Model implements HasMedia, Sitemapable
         return $query
             ->where('status', PostStatus::Published)
             ->whereNotNull('published_at')
-            ->where('published_at', '<=', now());
+            ->where('published_at', '<=', CarbonImmutable::now()->format('Y-m-d H:i:s'));
     }
 
     public function getSlugOptions(): SlugOptions
@@ -87,5 +94,10 @@ class Post extends Model implements HasMedia, Sitemapable
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function tags(): MorphToMany
+    {
+        return $this->morphToMany(Tag::class, 'taggable');
     }
 }

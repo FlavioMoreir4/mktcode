@@ -1,0 +1,8 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+@import '../../../../vendor/awcodes/richer-editor/resources/css/index.css';
+
+@source '../../../../vendor/awcodes/richer-editor/resources/views/**/*.blade.php';

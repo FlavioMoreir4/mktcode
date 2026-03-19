@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources;
 
 use App\Enums\PostStatus;
+use App\Filament\Resources\Concerns\HasDynamicRichEditor;
 use App\Filament\Resources\PostResource\Pages;
 use App\Models\Post;
 use BackedEnum;
@@ -13,6 +14,8 @@ use Filament\Actions\BulkAction;
 use Filament\Forms;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\SpatieTagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -20,15 +23,17 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Enums\IconPosition;
 use Filament\Support\Enums\TextSize;
-use Filament\Tables;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
 class PostResource extends Resource
 {
+    use HasDynamicRichEditor;
+
     protected static ?string $model = Post::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
@@ -50,26 +55,26 @@ class PostResource extends Resource
                     ->icon('heroicon-o-document-text')
                     ->columnSpan(8)
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->label('Título')
                             ->required()
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn ($set, $state) => $set('slug', Str::slug($state)))
                             ->maxLength(120),
 
-                        Forms\Components\TextInput::make('slug')
+                        TextInput::make('slug')
                             ->label('Slug')
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->helperText('URL amigável, editável'),
 
-                        Forms\Components\Textarea::make('excerpt')
+                        Textarea::make('excerpt')
                             ->label('Resumo')
                             ->rows(3)
                             ->placeholder('Resumo curto para listagens...'),
 
-                        Forms\Components\RichEditor::make('body')
-                            ->label('Conteúdo completo')
+                        static::getFullRichEditor('body')
+                            ->hint('Explore todos os plugins: Code, Embed, Emoji, etc')
                             ->required()
                             ->columnSpanFull(),
                     ]),
@@ -109,7 +114,7 @@ class PostResource extends Resource
                                     ->relationship('category', 'name')
                                     ->searchable()
                                     ->createOptionForm([
-                                        Forms\Components\TextInput::make('name')
+                                        TextInput::make('name')
                                             ->required()
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(fn ($set, $state) => $set('slug', Str::slug($state))),
@@ -125,11 +130,11 @@ class PostResource extends Resource
                             ->icon('heroicon-o-magnifying-glass')
                             ->compact()
                             ->schema([
-                                Forms\Components\TextInput::make('seo_title')
+                                TextInput::make('seo_title')
                                     ->label('Título SEO')
                                     ->maxLength(60),
 
-                                Forms\Components\Textarea::make('seo_description')
+                                Textarea::make('seo_description')
                                     ->label('Descrição SEO')
                                     ->rows(2)
                                     ->maxLength(160),
@@ -161,7 +166,7 @@ class PostResource extends Resource
                     ->label(''),
 
                 Stack::make([
-                    Tables\Columns\TextColumn::make('title')
+                    TextColumn::make('title')
                         ->label('Título')
                         ->searchable()
                         ->weight(FontWeight::Bold)
@@ -173,18 +178,18 @@ class PostResource extends Resource
                         })
                         ->iconPosition(IconPosition::After),
 
-                    Tables\Columns\TextColumn::make('category.name')
+                    TextColumn::make('category.name')
                         ->label('Categoria')
                         ->icon('heroicon-o-tag')
                         ->size(TextSize::Small),
 
-                    Tables\Columns\TextColumn::make('author.name')
+                    TextColumn::make('author.name')
                         ->label('Autor')
                         ->icon('heroicon-o-user')
                         ->size(TextSize::ExtraSmall),
                 ]),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn ($record) => match (true) {
@@ -196,7 +201,7 @@ class PostResource extends Resource
                         default => $record->status->getColor(),
                     }),
 
-                Tables\Columns\TextColumn::make('published_at')
+                TextColumn::make('published_at')
                     ->label('Publicação')
                     ->since()
                     ->sortable(),

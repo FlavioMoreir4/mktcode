@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\ProjectStatus;
+use App\Filament\Resources\Concerns\HasRichEditorRendering;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,6 +19,7 @@ use Spatie\Tags\HasTags;
 
 class Project extends Model implements HasMedia, Sitemapable
 {
+    use HasRichEditorRendering;
     use HasSlug, HasTags, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
@@ -74,6 +76,23 @@ class Project extends Model implements HasMedia, Sitemapable
     public function scopeFeatured(Builder $query): Builder
     {
         return $query->published()->where('featured', true);
+    }
+
+    public function scopePublic(Builder $query): Builder
+    {
+        return $query
+            ->where('status', ProjectStatus::Published)
+            ->orderBy('sort_order')
+            ->orderByDesc('created_at');
+    }
+
+    public function scopePublicOrdered(Builder $query): Builder
+    {
+        return $query
+            ->where('status', ProjectStatus::Published)
+            ->orderByDesc('featured')
+            ->orderBy('sort_order')
+            ->orderByDesc('created_at');
     }
 
     public function getSlugOptions(): SlugOptions
