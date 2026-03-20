@@ -5,4 +5,4 @@ Disallow: /admin
 Disallow: /filament
 Disallow: /login
 
-Sitemap: https://deploy.mktcode.digital/sitemap.xml
+Sitemap: https://mktcode.digital/sitemap.xml
