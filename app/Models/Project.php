@@ -17,6 +17,13 @@ use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder|Project public()
+ * @method static \Illuminate\Database\Eloquent\Builder|Project published()
+ * @method static \Illuminate\Database\Eloquent\Builder|Project ordered()
+ * @method static \Illuminate\Database\Eloquent\Builder|Project featured()
+ * @method static \Illuminate\Database\Eloquent\Builder|Project publicOrdered()
+ */
 class Project extends Model implements HasMedia, Sitemapable
 {
     use HasRichEditorRendering;
@@ -48,6 +55,11 @@ class Project extends Model implements HasMedia, Sitemapable
         ];
     }
 
+    protected function getEditorContent(): string|array|null
+    {
+        return $this->content;
+    }
+
     public function toSitemapTag(): Url|string|array
     {
         $url = Url::create(route('public.projects.show', $this->slug))
@@ -75,13 +87,14 @@ class Project extends Model implements HasMedia, Sitemapable
 
     public function scopeFeatured(Builder $query): Builder
     {
-        return $query->published()->where('featured', true);
+        return $this->scopePublished($query)->where('featured', true);
     }
 
     public function scopePublic(Builder $query): Builder
     {
         return $query
             ->where('status', ProjectStatus::Published)
+            ->orderByDesc('featured')
             ->orderBy('sort_order')
             ->orderByDesc('created_at');
     }

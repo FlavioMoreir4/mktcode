@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Public\PublicPostIndexResource;
-use App\Http\Resources\Public\PublicPostPublicResource;
+use App\Http\Resources\Public\PublicPostCollection;
+use App\Http\Resources\Public\PublicPostShowResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,16 +26,16 @@ class PostController extends Controller
             ->withQueryString();
 
         return Inertia::render('public/blog/Index', [
-            'posts' => PublicPostIndexResource::collection($posts),
+            'posts' => new PublicPostCollection($posts),
         ]);
     }
 
     public function show(Post $post): Response
     {
-        $post->load(['author.media', 'category', 'media']);
+        $post->load(['author.media', 'category', 'media', 'tags']);
 
         return Inertia::render('public/blog/Show', [
-            'post' => PublicPostPublicResource::make($post)->resolve(),
+            'post' => PublicPostShowResource::make($post)->resolve(),
         ]);
     }
 }

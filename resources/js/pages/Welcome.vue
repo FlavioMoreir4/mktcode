@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm, Link } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import {
     LucideMonitor,
     LucideSettings2,
@@ -26,14 +26,14 @@ import {
 import { onMounted, onUnmounted, ref } from 'vue';
 import logo from '@/../images/logo.png';
 import ProjectCard from '@/components/marketing/ProjectCard.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { projects as projectsStore } from '@/routes/public';
 import { store as inquiryStore } from '@/routes/public/inquiry';
-import type { Project, Service } from '@/types';
-import SeoHead from '@/components/SeoHead.vue';
+import type { PublicProject, Service } from '@/types';
 
 interface Props {
-    projects: Project[];
+    projects: PublicProject[];
     services: Service[];
 }
 const props = defineProps<Props>();
@@ -149,7 +149,7 @@ const submit = () => {
 </script>
 
 <template>
-    <SeoHead title="Tecnologia que resolve" :image="logo" />
+    <SeoHead title="Tecnologia que resolve" />
 
     <PublicLayout>
         <!-- ══════════════════════════════════════════════
@@ -470,11 +470,11 @@ const submit = () => {
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <div
                         v-for="(project, i) in props.projects"
-                        :key="project.id"
+                        :key="i"
                         class="reveal"
                         :style="{ '--reveal-delay': `${i * 80}ms` }"
                     >
-                        <ProjectCard :project="project" />
+                        <ProjectCard :project="project" :with-cover="false" />
                     </div>
                 </div>
             </div>

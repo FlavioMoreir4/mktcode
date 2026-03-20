@@ -23,24 +23,16 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import blog from '@/routes/public/blog';
 import user from '@/routes/public/user';
-import type { Post } from '@/types/models';
+import type { PublicPostShow } from '@/types';
 
 const props = defineProps<{
-    post: Post;
+    post: PublicPostShow;
 }>();
 
 // Reading progress
 const readingProgress = ref(0);
 const articleRef = ref<HTMLElement | null>(null);
 const copied = ref(false);
-
-// Estimated reading time (avg 200 words/min)
-const readingTime = computed(() => {
-    const text = props.post.body?.replace(/<[^>]*>/g, '') ?? '';
-    const words = text.trim().split(/\s+/).length;
-
-    return Math.max(1, Math.ceil(words / 200));
-});
 
 // Tag name helper
 const getTagName = (tag: any): string => {
@@ -101,16 +93,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <SeoHead
-        :title="post.seo_title ?? post.title"
-        :description="post.seo_description ?? post.excerpt ?? ''"
-        :image="post.media?.[0]?.original_url"
-        :url="postUrl"
-        :keywords="post.tags?.map((tag) => getTagName(tag))?.join(', ')"
-        :publishedAt="post.published_at ?? ''"
-        :type="'article'"
-        :author="post.author?.name"
-    />
+    <SeoHead v-bind="post.seo" />
 
     <PublicLayout>
         <!-- Reading Progress Bar -->
@@ -242,8 +225,8 @@ onUnmounted(() => {
                     >
                         <div v-if="post.author" class="flex items-center gap-2">
                             <img
-                                v-if="post.author.profile_photo_url"
-                                :src="post.author.profile_photo_url"
+                                v-if="post.author.avatar"
+                                :src="post.author.avatar"
                                 :alt="post.author.name"
                                 class="h-7 w-7 rounded-full object-cover ring-1 ring-border"
                             />
@@ -283,18 +266,18 @@ onUnmounted(() => {
                                     d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                             </svg>
-                            {{ readingTime }} min de leitura
+                            {{ post.reading_time }} min de leitura
                         </span>
                     </div>
                 </header>
 
                 <!-- Featured Image -->
                 <div
-                    v-if="post.media && post.media.length > 0"
+                    v-if="post.cover"
                     class="mb-16 overflow-hidden rounded-3xl bg-muted shadow-lg"
                 >
                     <img
-                        :src="post.media[0].original_url"
+                        :src="post.cover"
                         :alt="post.title"
                         class="aspect-video w-full object-cover transition-transform duration-700 hover:scale-[1.02]"
                     />
@@ -318,8 +301,8 @@ onUnmounted(() => {
                         class="mb-10 flex flex-wrap gap-2"
                     >
                         <span
-                            v-for="tag in post.tags"
-                            :key="tag.id"
+                            v-for="(tag, i) in post.tags"
+                            :key="i"
                             class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                         >
                             #{{ getTagName(tag) }}
@@ -392,11 +375,11 @@ onUnmounted(() => {
                         <HoverCard>
                             <HoverCardTrigger>
                                 <div
-                                    v-if="post.author.profile_photo_url"
+                                    v-if="post.author.avatar"
                                     class="h-16 w-16 shrink-0 overflow-hidden rounded-full ring-2 ring-border"
                                 >
                                     <img
-                                        :src="post.author.profile_photo_url"
+                                        :src="post.author.avatar"
                                         :alt="post.author.name"
                                         class="h-full w-full object-cover"
                                     />
@@ -431,10 +414,7 @@ onUnmounted(() => {
                                 >
                                     <Avatar class="h-16 w-16">
                                         <AvatarImage
-                                            :src="
-                                                post.author.profile_photo_url ||
-                                                ''
-                                            "
+                                            :src="post.author.avatar || ''"
                                         />
                                         <AvatarFallback>{{
                                             post.author.name.charAt(0)
@@ -459,9 +439,9 @@ onUnmounted(() => {
                                             class="flex items-center gap-2 pt-2"
                                         >
                                             <a
-                                                v-for="(link, index) in post
-                                                    .author.social_links"
-                                                :key="index"
+                                                v-for="(link, i) in post.author
+                                                    .social"
+                                                :key="i"
                                                 :href="link.url"
                                                 target="_blank"
                                                 class="text-muted-foreground hover:text-primary"

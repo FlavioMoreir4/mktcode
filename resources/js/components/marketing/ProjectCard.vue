@@ -12,18 +12,18 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import projects from '@/routes/public/projects';
-import type { Project } from '@/types/models';
+import type { PublicProject } from '@/types/public';
 
 interface Props {
-    project: Project;
+    project: PublicProject;
     variant?: 'default' | 'featured';
+    withCover?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     variant: 'default',
+    withCover: true,
 });
-
-const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
 </script>
 
 <template>
@@ -38,11 +38,12 @@ const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
         >
             <!-- Image -->
             <div
+                v-if="withCover"
                 class="aspect-video overflow-hidden bg-muted md:aspect-auto md:w-1/2"
             >
                 <img
-                    v-if="getImage(project)"
-                    :src="getImage(project)!"
+                    v-if="project.cover"
+                    :src="project.cover"
                     :alt="project.title"
                     class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
@@ -65,7 +66,7 @@ const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
                             variant="outline"
                             class="text-[10px] tracking-widest text-primary/70 uppercase"
                         >
-                            {{ project.category ?? 'Projeto' }}
+                            Projeto
                         </Badge>
                         <template v-if="project.client || project.year">
                             <span class="text-xs text-border">·</span>
@@ -103,21 +104,6 @@ const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
                 </CardHeader>
 
                 <CardContent class="px-8 pb-0 md:px-12">
-                    <!-- Highlights -->
-                    <ul v-if="project.highlights?.length" class="space-y-1.5">
-                        <li
-                            v-for="h in project.highlights"
-                            :key="h"
-                            class="flex items-start gap-2 text-sm"
-                        >
-                            <span
-                                class="mt-0.5 leading-none font-bold text-primary"
-                                >→</span
-                            >
-                            <span class="text-muted-foreground">{{ h }}</span>
-                        </li>
-                    </ul>
-
                     <!-- Stack -->
                     <div
                         v-if="project.stack?.length"
@@ -180,11 +166,11 @@ const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
 
             <!-- Thumbnail -->
             <div
-                v-if="getImage(project)"
+                v-if="project.cover && withCover"
                 class="aspect-[16/10] overflow-hidden bg-muted"
             >
                 <img
-                    :src="getImage(project)!"
+                    :src="project.cover"
                     :alt="project.title"
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 />
@@ -198,7 +184,7 @@ const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
                             variant="outline"
                             class="text-[10px] tracking-widest text-primary/70 uppercase"
                         >
-                            {{ project.category ?? 'Projeto' }}
+                            Projeto
                         </Badge>
                         <template v-if="project.client || project.year">
                             <span class="text-xs text-border">·</span>
@@ -258,24 +244,6 @@ const getImage = (p: Project) => p.media?.[0]?.original_url ?? null;
                     </CardDescription>
                 </div>
             </CardHeader>
-
-            <CardContent
-                class="relative z-10 flex flex-1 flex-col gap-4 p-7 pt-4"
-            >
-                <!-- Highlights -->
-                <ul v-if="project.highlights?.length" class="space-y-1.5">
-                    <li
-                        v-for="h in project.highlights.slice(0, 3)"
-                        :key="h"
-                        class="flex items-start gap-2 text-sm"
-                    >
-                        <span class="mt-0.5 leading-none font-bold text-primary"
-                            >→</span
-                        >
-                        <span class="text-muted-foreground">{{ h }}</span>
-                    </li>
-                </ul>
-            </CardContent>
 
             <!-- Stack tags -->
             <CardFooter

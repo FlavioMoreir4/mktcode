@@ -1,34 +1,43 @@
-import {
-    SITE_NAME,
-    SITE_URL,
-    SITE_DESCRIPTION,
-    SITE_OG_IMAGE,
-    SITE_KEYWORDS,
-    SITE_AUTHOR,
-} from '@/config/site';
+import { usePage } from '@inertiajs/vue3';
 import type { SeoProps } from '@/types';
 
-export function useSeo(props: SeoProps) {
-    const canonicalUrl = props.url
-        ? props.url.startsWith('http')
-            ? props.url
-            : `${SITE_URL}${props.url}`
-        : undefined;
+export function useSeo(props?: SeoProps) {
+    const page = usePage();
+
+    const site = page.props.site as any;
+    const globalSeo = page.props.seo as SeoProps;
+    console.log(
+        window.location.href,
+        'window.location.href',
+        props?.url,
+        'props.url',
+        globalSeo?.url,
+        'globalSeo.url',
+    );
+    const url =
+        props?.url ??
+        (typeof window !== 'undefined' ? window.location.href : site.url) ??
+        globalSeo?.url;
+
+    const image = props?.image ?? globalSeo?.image ?? site.og_image;
 
     return {
-        siteName: SITE_NAME,
-        title: props.title,
-        description: props.description || SITE_DESCRIPTION,
-        image: props.image
-            ? props.image.startsWith('http')
-                ? props.image
-                : `${SITE_URL}${props.image}`
-            : `${SITE_URL}${SITE_OG_IMAGE}`,
-        url: canonicalUrl,
-        type: props.type || 'website',
-        publishedAt: props.publishedAt,
-        keywords: props.keywords || SITE_KEYWORDS,
-        author: props.author || SITE_AUTHOR,
-        noIndex: props.noIndex ?? false,
+        title: props?.title || globalSeo?.title || site.name,
+
+        description:
+            props?.description || globalSeo?.description || site.description,
+
+        url,
+        image,
+
+        type: props?.type || globalSeo?.type || 'website',
+
+        publishedAt: props?.publishedAt || globalSeo?.publishedAt,
+
+        author: props?.author || site.author,
+
+        keywords: props?.keywords || site.keywords,
+
+        noIndex: props?.noIndex ?? false,
     };
 }

@@ -1,11 +1,11 @@
 export interface SeoProps {
-    title: string;
-    description?: string;
-    image?: string;
-    url?: string;
-    type?: 'website' | 'article' | 'profile';
-    publishedAt?: string;
-    keywords?: string;
-    author?: string;
+    title?: string | null;
+    description?: string | null;
+    image?: string | null;
+    url?: string | null;
+    type?: 'website' | 'article' | 'profile' | 'project';
+    publishedAt?: string | null;
+    keywords?: string | null;
+    author?: string | null;
     noIndex?: boolean;
 }

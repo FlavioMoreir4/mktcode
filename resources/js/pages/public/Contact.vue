@@ -16,6 +16,7 @@ import {
 import { onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
+import { contact } from '@/routes/public';
 import { store as inquiryStore } from '@/routes/public/inquiry';
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
@@ -95,7 +96,7 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead title="Contato" />
+    <SeoHead title="Contato" :url="contact.url()" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">

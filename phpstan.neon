@@ -13,3 +13,6 @@ parameters:
 
     checkModelProperties: true
     checkMissingTypehints: true
+
+    stubsFiles:
+        - stubs/richer-editor.stub.php

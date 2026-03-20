@@ -24,7 +24,7 @@ import {
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { contact } from '@/routes/public';
+import { contact, services as servicesUrl } from '@/routes/public';
 import type { Service } from '@/types';
 
 const props = defineProps<{
@@ -126,7 +126,7 @@ const scrollTo = (id: string) => {
 </script>
 
 <template>
-    <SeoHead title="Serviços" />
+    <SeoHead title="Serviços" :url="servicesUrl.url()" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">

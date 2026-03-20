@@ -14,11 +14,17 @@ use Phiki\Theme\Theme;
 trait HasRichEditorRendering
 {
     /**
+     * Cada model deve implementar esse método para indicar
+     * qual atributo contém o conteúdo do editor.
+     */
+    abstract protected function getEditorContent(): string|array|null;
+
+    /**
      * Detectar se o conteúdo é JSON do RichEditor
      */
     protected function isRichEditorContent(): bool
     {
-        return is_array($this->body);
+        return is_array($this->getEditorContent());
     }
 
     /**
@@ -26,7 +32,7 @@ trait HasRichEditorRendering
      */
     protected function isMarkdownContent(): bool
     {
-        return is_string($this->body) && Str::contains($this->body, ['#', '**', '-', '*', '```']);
+        return is_string($this->getEditorContent()) && Str::contains($this->getEditorContent(), ['#', '**', '-', '*', '```']);
     }
 
     /**
@@ -35,12 +41,12 @@ trait HasRichEditorRendering
     public function getHtmlAttribute(): string
     {
 
-        if (! $this->body) {
+        if (! $this->getEditorContent()) {
             return '';
         }
         // Conteúdo vindo do RichEditor (JSON)
         if ($this->isRichEditorContent()) {
-            return RichContentRenderer::make($this->body)
+            return RichContentRenderer::make($this->getEditorContent())
                 ->customBlocks([
                     HighlightedCodeBlock::class => [
                         'dark' => Theme::GithubDark,
@@ -55,10 +61,10 @@ trait HasRichEditorRendering
         if ($this->isMarkdownContent()) {
             $converter = new CommonMarkConverter;
 
-            return $converter->convert($this->body)->getContent();
+            return $converter->convert($this->getEditorContent())->getContent();
         }
 
-        return (string) $this->body;
+        return (string) $this->getEditorContent();
     }
 
     /**
@@ -66,15 +72,15 @@ trait HasRichEditorRendering
      */
     public function getMarkdownAttribute(): string
     {
-        if (! $this->body) {
+        if (! $this->getEditorContent()) {
             return '';
         }
 
         if ($this->isRichEditorContent()) {
-            return RichContentRenderer::make($this->body)->toMarkdown();
+            return RichContentRenderer::make($this->getEditorContent())->toMarkdown();
         }
 
-        return (string) $this->body;
+        return (string) $this->getEditorContent();
     }
 
     /**
@@ -106,7 +112,7 @@ trait HasRichEditorRendering
             return '';
         }
 
-        return TableOfContents::make($this->body)->asHtml();
+        return TableOfContents::make($this->getEditorContent())->asHtml();
     }
 
     /**
@@ -118,7 +124,7 @@ trait HasRichEditorRendering
             return [];
         }
 
-        return TableOfContents::make($this->body)->asArray();
+        return TableOfContents::make($this->getEditorContent())->asArray();
     }
 
     /**

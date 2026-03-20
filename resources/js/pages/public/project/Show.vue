@@ -114,13 +114,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <SeoHead
-        :title="project.seo_title || project.title"
-        :image="project.media?.[0]?.original_url"
-        :description="project.seo_description || project.description || ''"
-        :url="project.url || ''"
-        :type="'article'"
-    />
+    <SeoHead v-bind="project.seo" />
 
     <PublicLayout>
         <!-- Reading progress bar -->
@@ -385,12 +379,15 @@ onUnmounted(() => {
             </div>
 
             <!-- ── Cover image ─────────────────────────────────────────── -->
-            <div v-if="coverImage" class="reveal mx-auto mb-20 max-w-7xl px-6">
+            <div
+                v-if="project.cover"
+                class="reveal mx-auto mb-20 max-w-7xl px-6"
+            >
                 <div
                     class="relative aspect-[21/9] overflow-hidden rounded-[2.5rem] border border-border/50 shadow-2xl"
                 >
                     <img
-                        :src="coverImage"
+                        :src="project.cover"
                         :alt="project.title"
                         class="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.02]"
                     />

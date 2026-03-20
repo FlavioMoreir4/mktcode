@@ -14,10 +14,10 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import { contact } from '@/routes/public';
 import blog from '@/routes/public/blog';
-import type { PaginatedResponse, Post } from '@/types';
+import type { PaginatedResponse, PublicPost } from '@/types';
 
 const props = defineProps<{
-    posts: PaginatedResponse<Post>;
+    posts: PaginatedResponse<PublicPost>;
 }>();
 
 // ─── Featured = first post on page 1, otherwise none ─────────────────────────
@@ -28,13 +28,6 @@ const featuredPost = computed(() =>
 const restPosts = computed(() =>
     featuredPost.value ? props.posts.data.slice(1) : props.posts.data,
 );
-
-// ─── Reading time helper ──────────────────────────────────────────────────────
-const readingTime = (post: Post): number => {
-    const text = post.body?.replace(/<[^>]*>/g, '') ?? '';
-
-    return Math.max(1, Math.ceil(text.trim().split(/\s+/).length / 200));
-};
 
 // ─── Tag name helper ──────────────────────────────────────────────────────────
 const tagName = (tag: any): string => {
@@ -139,8 +132,8 @@ onUnmounted(() => observer?.disconnect());
                             class="relative aspect-video overflow-hidden bg-muted lg:aspect-auto"
                         >
                             <img
-                                v-if="featuredPost.media?.length"
-                                :src="featuredPost.media[0].original_url"
+                                v-if="featuredPost.cover"
+                                :src="featuredPost.cover"
                                 :alt="featuredPost.title"
                                 class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                             />
@@ -219,8 +212,11 @@ onUnmounted(() => observer?.disconnect());
                                 class="flex flex-wrap gap-2"
                             >
                                 <span
-                                    v-for="tag in featuredPost.tags.slice(0, 4)"
-                                    :key="tag.id"
+                                    v-for="(tag, i) in featuredPost.tags.slice(
+                                        0,
+                                        4,
+                                    )"
+                                    :key="i"
                                     class="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
                                 >
                                     #{{ tagName(tag) }}
@@ -236,14 +232,8 @@ onUnmounted(() => observer?.disconnect());
                                     class="flex items-center gap-2.5"
                                 >
                                     <img
-                                        v-if="
-                                            featuredPost.author
-                                                .profile_photo_url
-                                        "
-                                        :src="
-                                            featuredPost.author
-                                                .profile_photo_url
-                                        "
+                                        v-if="featuredPost.author.avatar"
+                                        :src="featuredPost.author.avatar"
                                         :alt="featuredPost.author.name"
                                         class="h-8 w-8 rounded-full object-cover ring-1 ring-border"
                                     />
@@ -271,7 +261,7 @@ onUnmounted(() => observer?.disconnect());
                 >
                     <article
                         v-for="(post, i) in restPosts"
-                        :key="post.id"
+                        :key="i"
                         class="reveal group flex flex-col"
                         :style="{ '--reveal-delay': `${(i % 3) * 70}ms` }"
                     >
@@ -283,8 +273,8 @@ onUnmounted(() => observer?.disconnect());
                             aria-hidden="true"
                         >
                             <img
-                                v-if="post.media?.length"
-                                :src="post.media[0].original_url"
+                                v-if="post.cover"
+                                :src="post.cover"
                                 :alt="post.title"
                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                             />
@@ -325,7 +315,7 @@ onUnmounted(() => observer?.disconnect());
                                 <span class="text-border">·</span>
                                 <span class="flex items-center gap-1">
                                     <Clock class="h-3 w-3" />
-                                    {{ readingTime(post) }} min de leitura
+                                    {{ post.reading_time }} min de leitura
                                 </span>
                             </div>
 
@@ -352,8 +342,8 @@ onUnmounted(() => observer?.disconnect());
                                 class="flex flex-wrap gap-1.5"
                             >
                                 <span
-                                    v-for="tag in post.tags.slice(0, 3)"
-                                    :key="tag.id"
+                                    v-for="(tag, i) in post.tags.slice(0, 3)"
+                                    :key="i"
                                     class="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
                                 >
                                     #{{ tagName(tag) }}
@@ -370,8 +360,8 @@ onUnmounted(() => observer?.disconnect());
                                     class="flex items-center gap-2"
                                 >
                                     <img
-                                        v-if="post.author.profile_photo_url"
-                                        :src="post.author.profile_photo_url"
+                                        v-if="post.author.avatar"
+                                        :src="post.author.avatar"
                                         :alt="post.author.name"
                                         class="h-6 w-6 rounded-full object-cover ring-1 ring-border"
                                     />

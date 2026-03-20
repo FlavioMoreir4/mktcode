@@ -21,10 +21,10 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import { contact } from '@/routes/public';
 import blog from '@/routes/public/blog';
-import type { User, Post } from '@/types';
+import type { PublicUser } from '@/types';
 
 const props = defineProps<{
-    user: User;
+    user: PublicUser;
 }>();
 
 // ─── Social icon + label ──────────────────────────────────────────────────────
@@ -39,18 +39,30 @@ const socialIconMap: Record<string, unknown> = {
 const getSocialIcon = (p: string) => socialIconMap[p] ?? LucideLink;
 const getSocialLabel = (p: string) => p.charAt(0).toUpperCase() + p.slice(1);
 
-// ─── Reading time ─────────────────────────────────────────────────────────────
-const readingTime = (post: Post): number => {
-    const text = post.body?.replace(/<[^>]*>/g, '') ?? '';
-
-    return Math.max(1, Math.ceil(text.trim().split(/\s+/).length / 200));
-};
-
 // ─── Has content checks ───────────────────────────────────────────────────────
-const hasSocial = computed(() => props.user.social_links?.length > 0);
-const hasProjects = computed(() => props.user.projects?.length > 0);
-const hasPosts = computed(() => props.user.posts?.length > 0);
+const hasSocial = computed(() => {
+    const social = props.user.social;
 
+    if (!social) {
+        return false;
+    }
+
+    return Array.isArray(social)
+        ? social.length > 0
+        : Object.keys(social).length > 0;
+});
+
+const hasProjects = computed(() => props.user.projects?.data?.length > 0);
+const hasPosts = computed(() => props.user.posts?.data?.length > 0);
+
+console.log(
+    'hasPosts:',
+    hasPosts.value,
+    'hasProjects:',
+    hasProjects.value,
+    'hasSocial:',
+    hasSocial.value,
+);
 // ─── Scroll reveal ────────────────────────────────────────────────────────────
 let observer: IntersectionObserver | null = null;
 
@@ -73,16 +85,7 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead
-        :title="user.name"
-        :description="
-            user.title ? `${user.title} — perfil público em MC` : undefined
-        "
-        :image="user.profile_photo_url || undefined"
-        :url="`/u/${user.username}`"
-        type="profile"
-        :author="user.name"
-    />
+    <SeoHead v-bind="user.seo" />
 
     <PublicLayout>
         <!-- ══════════════════════════════════════════════
@@ -92,8 +95,8 @@ onUnmounted(() => observer?.disconnect());
             <!-- Cover photo -->
             <div class="relative h-56 w-full overflow-hidden bg-muted md:h-80">
                 <img
-                    v-if="user.cover_photo_url"
-                    :src="user.cover_photo_url"
+                    v-if="user.cover"
+                    :src="user.cover"
                     alt=""
                     aria-hidden="true"
                     class="h-full w-full object-cover"
@@ -119,8 +122,8 @@ onUnmounted(() => observer?.disconnect());
                             class="h-36 w-36 overflow-hidden rounded-3xl border-4 border-background bg-muted shadow-2xl md:h-48 md:w-48"
                         >
                             <img
-                                v-if="user.profile_photo_url"
-                                :src="user.profile_photo_url"
+                                v-if="user.avatar"
+                                :src="user.avatar"
                                 :alt="user.name"
                                 class="h-full w-full object-cover"
                             />
@@ -169,12 +172,12 @@ onUnmounted(() => observer?.disconnect());
                         </Link>
                         <a
                             v-if="
-                                user.social_links?.find(
+                                user.social?.find(
                                     (l) => l.platform === 'github',
                                 )
                             "
                             :href="
-                                user.social_links.find(
+                                user.social.find(
                                     (l) => l.platform === 'github',
                                 )!.url
                             "
@@ -227,7 +230,7 @@ onUnmounted(() => observer?.disconnect());
                             </h3>
                             <div class="flex flex-col gap-2">
                                 <a
-                                    v-for="link in user.social_links"
+                                    v-for="link in user.social"
                                     :key="link.platform"
                                     :href="link.url"
                                     target="_blank"
@@ -284,8 +287,8 @@ onUnmounted(() => observer?.disconnect());
 
                             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <div
-                                    v-for="(project, i) in user.projects"
-                                    :key="project.id"
+                                    v-for="(project, i) in user.projects.data"
+                                    :key="project.slug"
                                     class="reveal"
                                     :style="{
                                         '--reveal-delay': `${(i % 2) * 70}ms`,
@@ -315,8 +318,8 @@ onUnmounted(() => observer?.disconnect());
 
                             <div class="divide-y divide-border">
                                 <article
-                                    v-for="post in user.posts"
-                                    :key="post.id"
+                                    v-for="(post, i) in user.posts.data"
+                                    :key="i"
                                     class="group py-6 first:pt-0"
                                 >
                                     <Link
@@ -353,7 +356,7 @@ onUnmounted(() => observer?.disconnect());
                                                 class="flex items-center gap-1"
                                             >
                                                 <Clock class="h-3 w-3" />
-                                                {{ readingTime(post) }} min
+                                                {{ post.reading_time }} min
                                             </span>
                                         </div>
 
@@ -401,7 +404,7 @@ onUnmounted(() => observer?.disconnect());
         </section>
 
         <!-- ══════════════════════════════════════════════
-             BOTTOM CTA
+            BOTTOM CTA
         ══════════════════════════════════════════════ -->
         <div class="reveal mx-6 mb-24">
             <div

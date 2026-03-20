@@ -1,22 +1,45 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { useJsonLd } from '@/composables/useJsonLd';
 import { useSeo } from '@/composables/useSeo';
-import { SITE_OG_IMAGE, SITE_KEYWORDS } from '@/config/site';
 import type { SeoProps } from '@/types';
 
-const props = withDefaults(defineProps<SeoProps>(), {
-    type: 'website',
-    noIndex: false,
-    image: SITE_OG_IMAGE,
-    keywords: SITE_KEYWORDS,
-});
+const props = defineProps<SeoProps>();
 
 const seo = useSeo(props);
+
+const page = usePage();
+const site = page.props.site;
+
+const fullUrl = computed(() => {
+    if (seo.url.startsWith('http')) {
+        return seo.url;
+    }
+
+    return `${window.location.origin}${seo.url}`;
+});
+const jsonLd = computed(() => JSON.stringify(useJsonLd(seo, site)));
+// const jsonLd = JSON.stringify({
+//     '@context': 'https://schema.org',
+//     '@type': seo.type === 'article' ? 'Article' : 'WebSite',
+//     name: seo.title,
+//     description: seo.description,
+//     url: fullUrl.value,
+//     image: seo.image,
+//     author: {
+//         '@type': seo.type === 'profile' ? 'Person' : 'Organization',
+//         name: seo.author,
+//     },
+//     datePublished: seo.publishedAt,
+// });
 </script>
 
 <template>
     <Head>
         <title>{{ seo.title }}</title>
+
+        <!-- Basic SEO -->
         <meta name="description" :content="seo.description" />
         <meta name="author" :content="seo.author" />
         <meta name="keywords" :content="seo.keywords" />
@@ -26,19 +49,14 @@ const seo = useSeo(props);
         />
 
         <!-- Canonical -->
-        <link v-if="seo.url" rel="canonical" :href="seo.url" />
+        <link v-if="fullUrl" rel="canonical" :href="fullUrl" />
 
         <!-- Open Graph -->
-        <meta property="og:site_name" :content="seo.siteName" />
-        <meta property="og:locale" content="pt_BR" />
-        <meta
-            property="og:type"
-            :content="seo.type === 'profile' ? 'profile' : seo.type"
-        />
+        <meta property="og:type" :content="seo.type" />
         <meta property="og:title" :content="seo.title" />
         <meta property="og:description" :content="seo.description" />
         <meta property="og:image" :content="seo.image" />
-        <meta v-if="seo.url" property="og:url" :content="seo.url" />
+        <meta property="og:url" :content="fullUrl" />
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image" />
@@ -46,14 +64,19 @@ const seo = useSeo(props);
         <meta name="twitter:description" :content="seo.description" />
         <meta name="twitter:image" :content="seo.image" />
 
-        <!-- Article only -->
-        <template v-if="seo.type === 'article' && seo.publishedAt">
+        <!-- Article specific -->
+        <template v-if="seo.type === 'article'">
             <meta
+                v-if="seo.publishedAt"
                 property="article:published_time"
                 :content="seo.publishedAt"
             />
             <meta property="article:author" :content="seo.author" />
-            <meta property="article:keywords" :content="seo.keywords" />
         </template>
+
+        <!-- JSON-LD -->
+        <component :is="'script'" type="application/ld+json">
+            {{ jsonLd }}
+        </component>
     </Head>
 </template>

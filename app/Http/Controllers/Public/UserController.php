@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Public\UserPublicResource;
+use App\Http\Resources\Public\PublicUserResource;
 use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +22,7 @@ class UserController extends Controller
             ->firstOrFail();
 
         return Inertia::render('public/user/Show', [
-            'user' => (new UserPublicResource($user))->resolve(),
+            'user' => PublicUserResource::make($user)->resolve(),
         ]);
     }
 }

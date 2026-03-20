@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 /**
- * @mixin \Illuminate\Pagination\LengthAwarePaginator<int, \App\Models\Project>
+ * @mixin \Illuminate\Pagination\LengthAwarePaginator<int, \App\Models\Post>
  */
-class PublicProjectCollection extends ResourceCollection
+class PublicPostCollection extends ResourceCollection
 {
     /**
      * @return array<int|string, mixed>
@@ -18,7 +18,7 @@ class PublicProjectCollection extends ResourceCollection
     public function toArray(Request $request): array
     {
         return [
-            'data' => PublicProjectResource::collection($this->collection),
+            'data' => PublicPostResource::collection($this->collection),
 
             // 'meta' => [
             //     'current_page' => $this->currentPage(),

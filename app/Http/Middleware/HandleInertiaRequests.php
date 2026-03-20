@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
                 'name' => config('site.name', 'MC - Marketing & Code'),
                 'url' => config('site.url', route('home')),
                 'description' => config('site.description', 'Marketing & Code'),
-                'og_image' => config('site.og_image', ''),
+                'og_image' => config('site.og_image', asset('images/logo.png')),
                 'keywords' => config('site.keywords', ''),
                 'author' => config('site.author', 'MC - Marketing & Code'),
             ],
@@ -51,7 +51,7 @@ class HandleInertiaRequests extends Middleware
             'seo' => [
                 'title' => config('site.name', 'MC - Marketing & Code'),
                 'description' => config('site.description', 'Marketing & Code'),
-                'image' => config('site.og_image', ''),
+                'image' => config('site.og_image', asset('images/logo.png')),
                 'url' => config('site.url', route('home')),
                 'type' => 'website',
             ],

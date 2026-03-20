@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Public\PublicProjectResource;
 use App\Models\Project;
 use App\Models\Service;
 use Inertia\Inertia;
@@ -17,7 +18,7 @@ class HomeController extends Controller
     {
         return Inertia::render('Welcome', [
             'canRegister' => Features::enabled(Features::registration()),
-            'projects' => Project::published()->latest()->take(3)->get(),
+            'projects' => PublicProjectResource::collection(Project::published()->latest()->take(3)->get())->resolve(),
             'services' => Service::active()->get(),
         ]);
     }

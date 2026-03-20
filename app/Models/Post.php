@@ -21,6 +21,38 @@ use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
 use Spatie\Tags\Tag;
 
+/**
+ * App\Models\Post
+ *
+ * @property int $id
+ * @property string $title
+ * @property string $slug
+ * @property array<string, mixed>|null $body
+ * @property string|null $body_markdown
+ * @property string|null $content_format
+ * @property string|null $excerpt
+ * @property PostStatus $status
+ * @property \Carbon\Carbon|null $published_at
+ * @property int|null $author_id
+ * @property int|null $category_id
+ * @property string|null $seo_title
+ * @property string|null $seo_description
+ * @property string|null $seo_keywords
+ * @property string|null $keywords
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ * @property-read User $author
+ * @property-read Category $category
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Tag> $tags
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder|Post public()
+ * @method static \Illuminate\Database\Eloquent\Builder|Post published()
+ * @method static \Illuminate\Database\Eloquent\Builder|Post whereStatus(PostStatus $status)
+ * @method static \Illuminate\Database\Eloquent\Builder|Post whereSlug(string $slug)
+ *
+ * @mixin \Eloquent
+ */
 class Post extends Model implements HasMedia, Sitemapable
 {
     use HasRichEditorRendering;
@@ -50,6 +82,11 @@ class Post extends Model implements HasMedia, Sitemapable
         ];
     }
 
+    protected function getEditorContent(): string|array|null
+    {
+        return $this->body;
+    }
+
     public function toSitemapTag(): Url|string|array
     {
         $url = Url::create(route('public.blog.show', $this->slug))
@@ -65,12 +102,17 @@ class Post extends Model implements HasMedia, Sitemapable
         return $url;
     }
 
-    public function scopePublished(Builder $query): Builder
+    public function scopePublic(Builder $query): Builder
     {
         return $query
             ->where('status', PostStatus::Published)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', CarbonImmutable::now()->format('Y-m-d H:i:s'));
+    }
+
+    public function scopePublished(Builder $query): Builder
+    {
+        return $this->scopePublic($query);
     }
 
     public function getSlugOptions(): SlugOptions

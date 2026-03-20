@@ -104,6 +104,10 @@ trait HasDynamicRichEditor
 
     /**
      * Editor FULL profissional
+     *
+     * @mixin \Filament\Forms\Components\RichEditor
+     *
+     * @method static self maxHeight(string $value)
      */
     public static function getFullRichEditor(string $column = 'body'): RichEditor
     {
@@ -140,6 +144,10 @@ trait HasDynamicRichEditor
 
     /**
      * Editor estilo Notion (baseado em blocos)
+     *
+     * @mixin \Filament\Forms\Components\RichEditor
+     *
+     * @method static self maxHeight(string $value)
      */
     public static function getNotionRichEditor(string $column = 'body'): RichEditor
     {
@@ -195,6 +203,10 @@ trait HasDynamicRichEditor
 
     /**
      * Editor simples
+     *
+     * @mixin \Filament\Forms\Components\RichEditor
+     *
+     * @method static self maxHeight(string $value)
      */
     public static function getSimpleRichEditor(string $column = 'description'): RichEditor
     {
@@ -212,6 +224,10 @@ trait HasDynamicRichEditor
 
     /**
      * Editor para Blog
+     *
+     * @mixin \Filament\Forms\Components\RichEditor
+     *
+     * @method static self maxHeight(string $value)
      */
     public static function getBlogRichEditor(string $column = 'body'): RichEditor
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
+use App\Filament\Resources\Concerns\HasRichEditorRendering;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
@@ -14,6 +14,7 @@ use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
 use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -27,9 +28,10 @@ use Spatie\Sitemap\Tags\Url;
 
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, Sitemapable
 {
-    /** @use HasFactory<UserFactory> */
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
 
+    use HasRichEditorRendering;
     use HasRoles;
     use InteractsWithAppAuthentication;
     use InteractsWithAppAuthenticationRecovery;
@@ -86,6 +88,16 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'two_factor_confirmed_at' => 'datetime',
             'social_links' => 'array',
         ];
+    }
+
+    protected function getEditorContent(): string|array|null
+    {
+        return $this->bio;
+    }
+
+    public function scopePublic(Builder $query): Builder
+    {
+        return $query->whereNotNull('username');
     }
 
     public function getProfilePhotoUrlAttribute(): string
