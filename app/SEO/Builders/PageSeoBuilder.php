@@ -5,79 +5,46 @@ declare(strict_types=1);
 namespace App\SEO\Builders;
 
 use App\SEO\DTO\SeoData;
+use App\Settings\GeneralSettings;
 
 class PageSeoBuilder
 {
+    public function __construct(protected GeneralSettings $settings) {}
+
+    /**
+     * @param  string[]  $keywords
+     * @param  array<array{name: string, url: string}>  $breadcrumbs
+     */
     public function build(
         string $route,
-        string $title,
-        string $description,
+        ?string $title = null,
+        ?string $description = null,
         array $keywords = [],
         array $breadcrumbs = [],
-        string $robots = 'index, follow'
+        string $robots = 'index, follow',
     ): SeoData {
         $url = route($route);
 
+        $resolvedKeywords = ! empty($keywords)
+            ? $keywords
+            : $this->settings->parsedKeywords();
+
+        $resolvedTitle = $title ?? $this->settings->site_name;
+
         return new SeoData(
-            /*
-            |--------------------------------------------------------------------------
-            | SEO básico
-            |--------------------------------------------------------------------------
-            */
-            title: $title,
-            description: $description,
-
-            /*
-            |--------------------------------------------------------------------------
-            | OpenGraph
-            |--------------------------------------------------------------------------
-            */
-            image: config('site.og_image', asset('images/logo.png')),
-            imageAlt: config('app.name'),
-
-            /*
-            |--------------------------------------------------------------------------
-            | URLs
-            |--------------------------------------------------------------------------
-            */
+            title: $resolvedTitle,
+            description: $description ?? $this->settings->site_description,
+            image: $this->settings->ogImageUrl(),
+            imageAlt: $resolvedTitle,
             url: $url,
             canonical: $url,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Tipo de página
-            |--------------------------------------------------------------------------
-            */
             type: 'website',
-
-            /*
-            |--------------------------------------------------------------------------
-            | Keywords
-            |--------------------------------------------------------------------------
-            */
-            keywords: $keywords,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Robots
-            |--------------------------------------------------------------------------
-            */
+            keywords: $resolvedKeywords,
             robots: $robots,
-
-            /*
-            |--------------------------------------------------------------------------
-            | Breadcrumbs
-            |--------------------------------------------------------------------------
-            */
+            locale: $this->settings->site_locale,
             breadcrumbs: $breadcrumbs ?: [
-                [
-                    'name' => 'Home',
-                    'url' => route('home'),
-                ],
-                [
-                    'name' => $title,
-                    'url' => $url,
-                ],
+                ['name' => 'Home', 'url' => route('home')],
+                ['name' => $resolvedTitle, 'url' => $url],
             ],
         );
     }

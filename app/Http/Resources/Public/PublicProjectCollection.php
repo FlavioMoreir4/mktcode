@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Public;
 
-use App\SEO\Builders\PageSeoBuilder;
+use App\SEO\Services\SeoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -25,15 +25,11 @@ class PublicProjectCollection extends ResourceCollection
 
     public function with(Request $request): array
     {
-        $seo = (new PageSeoBuilder)->build(
-            route: 'public.projects',
-            title: 'Portfólio de Projetos',
-            description: 'Confira todos os projetos desenvolvidos pela MC - Marketing & Code.',
-            keywords: ['portfólio web', 'projetos desenvolvidos', 'case study'],
-        );
-
         return [
-            'seo' => $seo,
+            'seo' => app(SeoService::class)->forPage(
+                route: 'public.projects',
+                title: 'Projetos',
+            ),
         ];
     }
 }

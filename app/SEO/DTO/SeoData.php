@@ -28,11 +28,28 @@ class SeoData
 
         public string $robots = 'index, follow',
         public string $locale = 'pt_BR',
+
+        public bool $noIndex = false,
     ) {}
 
+    /**
+     * Retorna uma nova instância marcada como noIndex.
+     */
+    public function withoutIndexing(): static
+    {
+        $clone = clone $this;
+        $clone->noIndex = true;
+        $clone->robots = 'noindex, nofollow';
+
+        return $clone;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
-        return array_filter([
+        $data = array_filter([
             'title' => $this->title,
             'description' => $this->description,
             'image' => $this->image,
@@ -53,6 +70,13 @@ class SeoData
 
             'robots' => $this->robots,
             'locale' => $this->locale,
-        ]);
+        ], fn (mixed $value): bool => ! is_null($value));
+
+        // noIndex só é incluído quando verdadeiro (evita ruído desnecessário no frontend)
+        if ($this->noIndex) {
+            $data['noIndex'] = true;
+        }
+
+        return $data;
     }
 }

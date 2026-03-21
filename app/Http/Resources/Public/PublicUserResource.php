@@ -34,7 +34,7 @@ class PublicUserResource extends PublicResource
                 $this->whenLoaded('posts')
             ),
 
-            'seo' => $this->seo(),
+            // 'seo' => $this->seo(),
         ];
     }
 }

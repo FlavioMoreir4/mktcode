@@ -5,23 +5,19 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\SEO\Builders\PageSeoBuilder;
+use App\SEO\Services\SeoService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ContactController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(SeoService $seo): Response
     {
-        $seo = (new PageSeoBuilder)->build(
-            route: 'public.contact',
-            title: 'Contato',
-            description: 'Entre em contato com a MKT Code',
-            keywords: ['Marketing & Code', 'desenvolvimento web']
-        );
-
         return Inertia::render('public/Contact', [
-            'seo' => $seo,
+            'seo' => $seo->forPage(
+                route: 'public.contact',
+                title: 'Contato',
+            ),
         ]);
     }
 }

@@ -8,12 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\PublicProjectCollection;
 use App\Http\Resources\Public\PublicProjectResource;
 use App\Models\Project;
+use App\SEO\Services\SeoService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProjectController extends Controller
 {
-    public function index(): Response
+    public function index(SeoService $seo): Response
     {
         $projects = Project::publicOrdered()
             ->with('media', 'tags')
@@ -22,15 +23,20 @@ class ProjectController extends Controller
 
         return Inertia::render('public/project/Index', [
             'projects' => new PublicProjectCollection($projects),
+            'seo' => $seo->forPage(
+                route: 'public.projects',
+                title: 'Projetos',
+            ),
         ]);
     }
 
-    public function show(Project $project): Response
+    public function show(Project $project, SeoService $seo): Response
     {
         $project->load('media', 'tags');
 
         return Inertia::render('public/project/Show', [
             'project' => PublicProjectResource::make($project)->resolve(),
+            'seo' => $seo->forProject($project),
         ]);
     }
 }

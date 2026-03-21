@@ -1,4 +1,6 @@
 import type { Auth } from '@/types/auth';
+import type { SeoProps } from '@/types/seo';
+import type { SiteData } from '@/types/site';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -19,14 +21,8 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
-            site: {
-                name: string;
-                url: string;
-                og_image: string;
-                description: string;
-                author: string;
-                keywords: string;
-            };
+            site: SiteData;
+            seo?: SeoProps;
             [key: string]: unknown;
         };
     }

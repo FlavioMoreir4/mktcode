@@ -3,16 +3,17 @@ import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useJsonLd } from '@/composables/useJsonLd';
 import { useSeo } from '@/composables/useSeo';
-import type { SeoProps } from '@/types';
+import type { SeoProps } from '@/types/seo';
+import type { SiteData } from '@/types/site';
 
 const props = defineProps<SeoProps>();
 
 const seo = useSeo(props);
 
 const page = usePage();
-const site = page.props.site;
+const site = page.props.site as SiteData;
 
-const fullUrl = computed(() => {
+const fullUrl = computed((): string => {
     if (!seo.url) {
         return site.url;
     }
@@ -24,7 +25,7 @@ const fullUrl = computed(() => {
     return `${window.location.origin}${seo.url}`;
 });
 
-const jsonLd = computed(() => JSON.stringify(useJsonLd(seo, site)));
+const jsonLd = computed((): string => JSON.stringify(useJsonLd(seo, site)));
 </script>
 
 <template>
@@ -32,22 +33,18 @@ const jsonLd = computed(() => JSON.stringify(useJsonLd(seo, site)));
         <title>{{ seo.title }}</title>
 
         <!-- Basic SEO -->
-        <meta name="description" :content="seo.description" />
-        <meta name="author" :content="seo.author" />
+        <meta name="description" :content="seo.description ?? undefined" />
+        <meta name="author" :content="seo.author ?? undefined" />
 
         <meta
-            v-if="seo.keywords"
+            v-if="seo.keywords && seo.keywords.length > 0"
             name="keywords"
-            :content="
-                Array.isArray(seo.keywords)
-                    ? seo.keywords.join(', ')
-                    : seo.keywords
-            "
+            :content="seo.keywords.join(', ')"
         />
 
         <meta
             name="robots"
-            :content="seo.noIndex ? 'noindex, nofollow' : seo.robots"
+            :content="seo.noIndex ? 'noindex, nofollow' : (seo.robots ?? 'index, follow')"
         />
 
         <!-- Canonical -->
@@ -55,10 +52,13 @@ const jsonLd = computed(() => JSON.stringify(useJsonLd(seo, site)));
 
         <!-- OpenGraph -->
         <meta property="og:type" :content="seo.type" />
-        <meta property="og:title" :content="seo.title" />
-        <meta property="og:description" :content="seo.description" />
-        <meta property="og:image" :content="seo.image" />
+        <meta property="og:title" :content="seo.title ?? undefined" />
+        <meta property="og:description" :content="seo.description ?? undefined" />
+        <meta property="og:image" :content="seo.image ?? undefined" />
+        <meta v-if="seo.imageAlt" property="og:image:alt" :content="seo.imageAlt" />
         <meta property="og:url" :content="fullUrl" />
+        <meta property="og:locale" :content="seo.locale ?? 'pt_BR'" />
+        <meta property="og:site_name" :content="site.name" />
 
         <!-- Article specific -->
         <template v-if="seo.type === 'article'">
@@ -74,14 +74,14 @@ const jsonLd = computed(() => JSON.stringify(useJsonLd(seo, site)));
                 :content="seo.updatedAt"
             />
 
-            <meta property="article:author" :content="seo.author" />
+            <meta property="article:author" :content="seo.author ?? undefined" />
         </template>
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" :content="seo.title" />
-        <meta name="twitter:description" :content="seo.description" />
-        <meta name="twitter:image" :content="seo.image" />
+        <meta name="twitter:title" :content="seo.title ?? undefined" />
+        <meta name="twitter:description" :content="seo.description ?? undefined" />
+        <meta name="twitter:image" :content="seo.image ?? undefined" />
 
         <!-- JSON-LD (multiple schemas) -->
         <template v-for="(schema, i) in JSON.parse(jsonLd)" :key="i">

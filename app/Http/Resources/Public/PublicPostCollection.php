@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Public;
 
-use App\SEO\Builders\PageSeoBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -23,17 +22,15 @@ class PublicPostCollection extends ResourceCollection
         ];
     }
 
-    public function with(Request $request): array
-    {
-        $seo = (new PageSeoBuilder)->build(
-            route: 'public.blog.index',
-            title: 'Blog da MC - Marketing & Code',
-            description: 'Conteúdos sobre marketing digital, SEO, Laravel e desenvolvimento web.',
-            keywords: ['blog marketing digital', 'artigos laravel', 'SEO blog']
-        );
+    // public function with(Request $request): array
+    // {
+    //     $seo = app(PageSeoBuilder::class)->build(
+    //         route: 'public.blog.index',
+    //         title: 'Blog - '.config('app.name'),
+    //     );
 
-        return [
-            'seo' => $seo,
-        ];
-    }
+    //     return [
+    //         'seo' => $seo,
+    //     ];
+    // }
 }

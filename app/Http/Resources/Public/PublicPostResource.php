@@ -86,7 +86,7 @@ class PublicPostResource extends PublicResource
             | SEO
             |--------------------------------------------------------------------------
             */
-            'seo' => $this->seo(),
+            // 'seo' => $this->seo(),
         ];
     }
 }

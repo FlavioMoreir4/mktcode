@@ -73,7 +73,7 @@ class PostResource extends Resource
                             ->rows(3)
                             ->placeholder('Resumo curto para listagens...'),
 
-                        static::getFullRichEditor('body')
+                        self::getFullRichEditor('body')
                             ->hint('Explore todos os plugins: Code, Embed, Emoji, etc')
                             ->required()
                             ->columnSpanFull(),

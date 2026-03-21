@@ -1,10 +1,10 @@
-import type { SeoProps } from '@/types';
+import type { SeoProps } from '@/types/seo';
+import type { SiteData } from '@/types/site';
 
-export function useJsonLd(
-    seo: SeoProps,
-    site: { name: string; url: string; logo?: string },
-) {
-    const schemas: any[] = [];
+type JsonLdSchema = Record<string, unknown>;
+
+export function useJsonLd(seo: SeoProps, site: SiteData): JsonLdSchema[] {
+    const schemas: JsonLdSchema[] = [];
 
     /*
     |--------------------------------------------------------------------------
@@ -16,7 +16,8 @@ export function useJsonLd(
         '@type': 'Organization',
         name: site.name,
         url: site.url,
-        logo: site.logo,
+        logo: site.og_image,
+        sameAs: Object.values(site.social_links ?? {}),
     });
 
     /*
@@ -30,6 +31,7 @@ export function useJsonLd(
             '@type': 'WebSite',
             name: site.name,
             url: site.url,
+            inLanguage: seo.locale ?? site.locale,
         });
     }
 
@@ -44,6 +46,7 @@ export function useJsonLd(
             '@type': 'Article',
             headline: seo.title,
             image: seo.image,
+            inLanguage: seo.locale ?? site.locale,
             author: {
                 '@type': 'Person',
                 name: seo.author,
@@ -51,8 +54,8 @@ export function useJsonLd(
             publisher: {
                 '@type': 'Organization',
                 name: site.name,
-                logo: site.logo
-                    ? { '@type': 'ImageObject', url: site.logo }
+                logo: site.og_image
+                    ? { '@type': 'ImageObject', url: site.og_image }
                     : undefined,
             },
             datePublished: seo.publishedAt,

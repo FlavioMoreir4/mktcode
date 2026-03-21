@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -37,27 +38,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        /** @var GeneralSettings $settings */
+        $settings = app(GeneralSettings::class);
+
         return [
             ...parent::share($request),
+
+            /**
+             * Dados globais do site — fonte de verdade: GeneralSettings (banco de dados).
+             * O frontend consome via `usePage().props.site`.
+             */
             'site' => [
-                'name' => config('site.name', 'MC - Marketing & Code'),
-                'url' => config('site.url', route('home')),
-                'description' => config('site.description', 'Marketing & Code'),
-                'og_image' => config('site.og_image', asset('images/logo.png')),
-                'keywords' => config('site.keywords', ''),
-                'author' => config('site.author', 'MC - Marketing & Code'),
+                'name' => $settings->site_name,
+                'url' => route('home'),
+                'description' => $settings->site_description,
+                'og_image' => $settings->ogImageUrl(),
+                'keywords' => $settings->parsedKeywords(),
+                'author' => $settings->site_author,
+                'locale' => $settings->site_locale,
+                'social_links' => $settings->activeSocialLinks(),
             ],
 
-            'seo' => [
-                'title' => config('site.name', 'MC - Marketing & Code'),
-                'description' => config('site.description', 'Marketing & Code'),
-                'image' => config('site.og_image', asset('images/logo.png')),
-                'url' => config('site.url', route('home')),
-                'type' => 'website',
-            ],
-
-            // TODO: Revisar no futuro
-            'name' => config('app.name'),
+            'name' => $settings->site_name,
             'auth' => [
                 'user' => $request->user(),
             ],

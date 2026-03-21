@@ -38,8 +38,8 @@ trait HasDynamicRichEditor
             LinkPlugin::make(),
             SourceCodePlugin::make(),
             VideoPlugin::make(),
-            FigurePlugin::make(),
-            CodeBlockShikiPlugin::make(),
+            // FigurePlugin::make(),
+            // CodeBlockShikiPlugin::make(),
             PhikiCodeBlockPlugin::make(),
         ];
 

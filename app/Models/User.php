@@ -6,6 +6,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Filament\Resources\Concerns\HasRichEditorRendering;
+use App\SEO\Contracts\HasSeo;
+use App\SEO\SeoResolver;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
@@ -26,7 +28,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Sitemap\Contracts\Sitemapable;
 use Spatie\Sitemap\Tags\Url;
 
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, Sitemapable
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, HasSeo, Sitemapable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -88,6 +90,11 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'two_factor_confirmed_at' => 'datetime',
             'social_links' => 'array',
         ];
+    }
+
+    public function getSeo(): \App\SEO\DTO\SeoData
+    {
+        return app(SeoResolver::class)->resolve($this);
     }
 
     protected function getEditorContent(): string|array|null
