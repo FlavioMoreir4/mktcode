@@ -18,6 +18,13 @@ import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { contact } from '@/routes/public';
 import { store as inquiryStore } from '@/routes/public/inquiry';
+import type { SeoData } from '@/types';
+
+interface Props {
+    seo: SeoData;
+}
+
+const props = defineProps<Props>();
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
 const formSuccess = ref(false);
@@ -96,7 +103,7 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead title="Contato" :url="contact.url()" />
+    <SeoHead v-bind="props.seo" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">

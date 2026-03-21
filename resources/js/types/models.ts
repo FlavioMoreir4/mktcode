@@ -1,3 +1,5 @@
+import { SeoData } from './public';
+
 export interface Media {
     id: number;
     model_type: string;
@@ -175,4 +177,6 @@ export interface PaginatedResponse<T> {
         to: number | null;
         total: number;
     };
+
+    seo: SeoData;
 }

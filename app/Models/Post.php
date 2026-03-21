@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\PostStatus;
 use App\Filament\Resources\Concerns\HasRichEditorRendering;
+use App\SEO\Contracts\HasSeo;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -53,7 +54,7 @@ use Spatie\Tags\Tag;
  *
  * @mixin \Eloquent
  */
-class Post extends Model implements HasMedia, Sitemapable
+class Post extends Model implements HasMedia, HasSeo, Sitemapable
 {
     use HasRichEditorRendering;
     use HasSlug, HasTags, InteractsWithMedia, SoftDeletes;
@@ -80,6 +81,11 @@ class Post extends Model implements HasMedia, Sitemapable
             'body' => 'array',
             'status' => PostStatus::class,
         ];
+    }
+
+    public function getSeo(): \App\SEO\DTO\SeoData
+    {
+        return \App\SEO\SeoFactory::forModel($this);
     }
 
     protected function getEditorContent(): string|array|null

@@ -49,10 +49,7 @@ class PublicProjectResource extends PublicResource
             | SEO
             |--------------------------------------------------------------------------
             */
-            'seo' => [
-                ...$this->seo($request),
-                'type' => 'project',
-            ],
+            'seo' => $this->getSeo(),
         ];
     }
 }

@@ -86,7 +86,7 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead title="Projetos" />
+    <SeoHead v-bind="projects.seo" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">

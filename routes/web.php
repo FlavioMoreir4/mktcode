@@ -10,20 +10,24 @@ use App\Http\Controllers\Public\PostController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ServiceController;
 use App\Http\Controllers\Public\UserController as PublicUserController;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
 Route::get('/sitemap.xml', function () {
-    $path = public_path('sitemap.xml');
+    app(App\SEO\Services\SitemapGenerator::class)->generate();
 
-    // Fallback: gera na hora se o arquivo ainda não existe
-    if (! file_exists($path)) {
-        Artisan::call('sitemap:generate');
-    }
-
-    return response()->file($path, ['Content-Type' => 'application/xml']);
+    return response()->file(public_path('sitemap.xml'), [
+        'Content-Type' => 'application/xml',
+    ]);
 })->name('sitemap');
+
+Route::get('/robots.txt', function () {
+    return response(
+        app(App\SEO\Services\RobotsGenerator::class)->generate(),
+        200,
+        ['Content-Type' => 'text/plain']
+    );
+});
 
 // Sub-sitemaps também precisam de rota (ou o Laravel serve via public/ direto)
 // Se o servidor servir public/ diretamente, as rotas abaixo são opcionais:

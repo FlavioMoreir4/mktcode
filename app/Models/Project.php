@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\ProjectStatus;
 use App\Filament\Resources\Concerns\HasRichEditorRendering;
+use App\SEO\Contracts\HasSeo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,7 +25,7 @@ use Spatie\Tags\HasTags;
  * @method static \Illuminate\Database\Eloquent\Builder|Project featured()
  * @method static \Illuminate\Database\Eloquent\Builder|Project publicOrdered()
  */
-class Project extends Model implements HasMedia, Sitemapable
+class Project extends Model implements HasMedia, HasSeo, Sitemapable
 {
     use HasRichEditorRendering;
     use HasSlug, HasTags, InteractsWithMedia, SoftDeletes;
@@ -53,6 +54,11 @@ class Project extends Model implements HasMedia, Sitemapable
             'content' => 'array',
             'status' => ProjectStatus::class,
         ];
+    }
+
+    public function getSeo(): \App\SEO\DTO\SeoData
+    {
+        return \App\SEO\SeoFactory::forModel($this);
     }
 
     protected function getEditorContent(): string|array|null

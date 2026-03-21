@@ -24,12 +24,15 @@ import {
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { contact, services as servicesUrl } from '@/routes/public';
-import type { Service } from '@/types';
+import { contact } from '@/routes/public';
+import type { SeoData, Service } from '@/types';
 
-const props = defineProps<{
+interface Props {
     services: Service[];
-}>();
+    seo: SeoData;
+}
+
+const props = defineProps<Props>();
 
 // ─── Icon map ────────────────────────────────────────────────────────────────
 const iconMap: Record<string, unknown> = {
@@ -126,7 +129,7 @@ const scrollTo = (id: string) => {
 </script>
 
 <template>
-    <SeoHead title="Serviços" :url="servicesUrl.url()" />
+    <SeoHead v-bind="props.seo" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">

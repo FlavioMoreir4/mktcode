@@ -6,37 +6,33 @@ export function useSeo(props?: SeoProps) {
 
     const site = page.props.site as any;
     const globalSeo = page.props.seo as SeoProps;
-    console.log(
-        window.location.href,
-        'window.location.href',
-        props?.url,
-        'props.url',
-        globalSeo?.url,
-        'globalSeo.url',
-    );
-    const url =
-        props?.url ??
-        (typeof window !== 'undefined' ? window.location.href : site.url) ??
-        globalSeo?.url;
-
-    const image = props?.image ?? globalSeo?.image ?? site.og_image;
+    const currentUrl =
+        typeof window !== 'undefined' ? window.location.href : site.url;
 
     return {
-        title: props?.title || globalSeo?.title || site.name,
+        title: props?.title ?? globalSeo?.title ?? site.name,
 
         description:
-            props?.description || globalSeo?.description || site.description,
+            props?.description ?? globalSeo?.description ?? site.description,
 
-        url,
-        image,
+        url: props?.url ?? globalSeo?.url ?? currentUrl,
 
-        type: props?.type || globalSeo?.type || 'website',
+        canonical: props?.canonical ?? globalSeo?.canonical ?? currentUrl,
 
-        publishedAt: props?.publishedAt || globalSeo?.publishedAt,
+        image: props?.image ?? globalSeo?.image ?? site.og_image,
 
-        author: props?.author || site.author,
+        type: props?.type ?? globalSeo?.type ?? 'website',
 
-        keywords: props?.keywords || site.keywords,
+        publishedAt: props?.publishedAt ?? globalSeo?.publishedAt,
+        updatedAt: props?.updatedAt ?? globalSeo?.updatedAt,
+
+        author: props?.author ?? globalSeo?.author ?? site.author,
+
+        keywords: props?.keywords ?? globalSeo?.keywords ?? site.keywords,
+
+        breadcrumbs: props?.breadcrumbs ?? globalSeo?.breadcrumbs ?? null,
+
+        robots: props?.robots ?? globalSeo?.robots ?? 'index, follow',
 
         noIndex: props?.noIndex ?? false,
     };

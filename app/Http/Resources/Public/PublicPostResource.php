@@ -21,6 +21,7 @@ class PublicPostResource extends PublicResource
      */
     public function toArray(Request $request): array
     {
+
         return [
 
             'title' => $this->title,
@@ -85,10 +86,7 @@ class PublicPostResource extends PublicResource
             | SEO
             |--------------------------------------------------------------------------
             */
-            'seo' => [
-                ...$this->seo($request),
-                'type' => 'article',
-            ],
+            'seo' => $this->seo(),
         ];
     }
 }

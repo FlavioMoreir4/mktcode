@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Public;
 
+use App\SEO\Builders\PageSeoBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -19,18 +20,20 @@ class PublicProjectCollection extends ResourceCollection
     {
         return [
             'data' => PublicProjectResource::collection($this->collection),
+        ];
+    }
 
-            // 'meta' => [
-            //     'current_page' => $this->currentPage(),
-            //     'last_page' => $this->lastPage(),
-            //     'per_page' => $this->perPage(),
-            //     'total' => $this->total(),
-            // ],
+    public function with(Request $request): array
+    {
+        $seo = (new PageSeoBuilder)->build(
+            route: 'public.projects',
+            title: 'Portfólio de Projetos',
+            description: 'Confira todos os projetos desenvolvidos pela MC - Marketing & Code.',
+            keywords: ['portfólio web', 'projetos desenvolvidos', 'case study'],
+        );
 
-            // 'links' => [
-            //     'next' => $this->nextPageUrl(),
-            //     'prev' => $this->previousPageUrl(),
-            // ],
+        return [
+            'seo' => $seo,
         ];
     }
 }

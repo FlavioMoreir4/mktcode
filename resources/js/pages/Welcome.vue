@@ -30,11 +30,12 @@ import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { projects as projectsStore } from '@/routes/public';
 import { store as inquiryStore } from '@/routes/public/inquiry';
-import type { PublicProject, Service } from '@/types';
+import type { PublicProject, SeoData, Service } from '@/types';
 
 interface Props {
     projects: PublicProject[];
     services: Service[];
+    seo: SeoData;
 }
 const props = defineProps<Props>();
 
@@ -149,7 +150,7 @@ const submit = () => {
 </script>
 
 <template>
-    <SeoHead title="Tecnologia que resolve" />
+    <SeoHead v-bind="props.seo" />
 
     <PublicLayout>
         <!-- ══════════════════════════════════════════════

@@ -59,10 +59,7 @@ class PublicPostShowResource extends PublicResource
             ),
 
             'cover' => $this->cover(),
-            'seo' => [
-                ...$this->seo($request),
-                'type' => 'article',
-            ],
+            'seo' => $this->seo(),
         ];
     }
 }

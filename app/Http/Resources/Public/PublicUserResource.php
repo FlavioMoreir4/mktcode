@@ -34,14 +34,7 @@ class PublicUserResource extends PublicResource
                 $this->whenLoaded('posts')
             ),
 
-            'seo' => [
-                'author' => $this->name,
-                'title' => $this->name.' - '.$this->title,
-                'description' => $this->plain_text,
-                'image' => $this->profile_photo_url,
-                'url' => route('public.user.show', $this->username),
-                'type' => 'profile',
-            ],
+            'seo' => $this->seo(),
         ];
     }
 }

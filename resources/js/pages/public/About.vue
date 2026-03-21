@@ -4,7 +4,14 @@ import { ArrowRight } from 'lucide-vue-next';
 import { onMounted, onUnmounted } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { about, contact } from '@/routes/public';
+import { contact } from '@/routes/public';
+import type { SeoData } from '@/types';
+
+interface Props {
+    seo: SeoData;
+}
+
+const props = defineProps<Props>();
 
 const techStack = [
     {
@@ -71,7 +78,7 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead title="Sobre" :url="about.url()" />
+    <SeoHead v-bind="props.seo" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">

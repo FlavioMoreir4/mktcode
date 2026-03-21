@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Public;
 
+use App\SEO\Builders\PageSeoBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
@@ -19,18 +20,20 @@ class PublicPostCollection extends ResourceCollection
     {
         return [
             'data' => PublicPostResource::collection($this->collection),
+        ];
+    }
 
-            // 'meta' => [
-            //     'current_page' => $this->currentPage(),
-            //     'last_page' => $this->lastPage(),
-            //     'per_page' => $this->perPage(),
-            //     'total' => $this->total(),
-            // ],
+    public function with(Request $request): array
+    {
+        $seo = (new PageSeoBuilder)->build(
+            route: 'public.blog.index',
+            title: 'Blog da MC - Marketing & Code',
+            description: 'Conteúdos sobre marketing digital, SEO, Laravel e desenvolvimento web.',
+            keywords: ['blog marketing digital', 'artigos laravel', 'SEO blog']
+        );
 
-            // 'links' => [
-            //     'next' => $this->nextPageUrl(),
-            //     'prev' => $this->previousPageUrl(),
-            // ],
+        return [
+            'seo' => $seo,
         ];
     }
 }
