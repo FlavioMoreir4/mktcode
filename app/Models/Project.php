@@ -101,11 +101,7 @@ class Project extends Model implements HasMedia, HasSeo, Sitemapable
 
     public function scopePublicOrdered(Builder $query): Builder
     {
-        return $query
-            ->where('status', ProjectStatus::Published)
-            ->orderByDesc('featured')
-            ->orderBy('sort_order')
-            ->orderByDesc('created_at');
+        return $this->scopePublic($query);
     }
 
     public function getSlugOptions(): SlugOptions
