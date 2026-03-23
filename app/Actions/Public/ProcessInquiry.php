@@ -16,8 +16,11 @@ class ProcessInquiry
      */
     public function execute(array $data): void
     {
-        Inquiry::create($data);
+        $inquiry = Inquiry::create($data);
 
-        Log::info('Inquiry processed:', $data);
+        Log::info('Inquiry processed', [
+            'inquiry_id' => $inquiry->id,
+            'status' => $inquiry->status->value,
+        ]);
     }
 }

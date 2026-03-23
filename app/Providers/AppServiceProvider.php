@@ -6,7 +6,9 @@ namespace App\Providers;
 
 use App\Models\Post;
 use App\Models\Project;
+use App\Models\Inquiry;
 use App\Models\User;
+use App\Observers\InquiryObserver;
 use App\Observers\PostObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\UserObserver;
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         Post::observe(PostObserver::class);
         Project::observe(ProjectObserver::class);
         User::observe(UserObserver::class);
+        Inquiry::observe(InquiryObserver::class);
     }
 
     /**

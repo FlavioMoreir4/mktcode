@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\PublicPostCollection;
 use App\Http\Resources\Public\PublicPostShowResource;
 use App\Models\Post;
-use App\SEO\SeoResolver;
 use App\SEO\Services\SeoService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -33,13 +32,13 @@ class PostController extends Controller
         ]);
     }
 
-    public function show(Post $post, SeoResolver $seo): Response
+    public function show(Post $post, SeoService $seo): Response
     {
         $post->load(['author.media', 'category', 'media', 'tags']);
 
         return Inertia::render('public/blog/Show', [
             'post' => PublicPostShowResource::make($post)->resolve(),
-            'seo' => $post->getSeo(),
+            'seo' => $seo->forPost($post),
         ]);
     }
 }

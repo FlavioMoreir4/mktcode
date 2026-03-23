@@ -58,7 +58,7 @@ Route::name('public.')->group(function () {
     Route::get('/blog/{post:slug}', [PostController::class, 'show'])->name('blog.show');
 
     // User Profiles
-    Route::get('/u/{username}', [PublicUserController::class, 'show'])->name('user.show');
+    Route::get('/u/{user:username}', [PublicUserController::class, 'show'])->name('user.show');
 
     Route::post('/inquiry', [InquiryController::class, 'store'])->name('inquiry.store');
 });
