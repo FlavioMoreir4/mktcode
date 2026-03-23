@@ -42,17 +42,11 @@ class ProjectSeoBuilder
             canonical: $url,
 
             type: 'project',
-
-            publishedAt: $project->published_at?->toIso8601String(),
             updatedAt: $project->updated_at?->toIso8601String(),
 
-            author: $project->relationLoaded('author')
+            author: $project->relationLoaded('author') && $project->author
                 ? $project->author->name
                 : $this->settings->site_author,
-
-            category: $project->relationLoaded('category') && $project->category
-                ? ['name' => $project->category->name, 'slug' => $project->category->slug]
-                : null,
 
             keywords: $keywords,
 

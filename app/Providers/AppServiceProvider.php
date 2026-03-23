@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Events\Inquiries\InquirySubmitted;
+use App\Listeners\Inquiries\SendInquirySubmittedNotification;
 use App\Models\Post;
 use App\Models\Project;
-use App\Models\Inquiry;
 use App\Models\User;
-use App\Observers\InquiryObserver;
 use App\Observers\PostObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\UserObserver;
@@ -17,6 +17,7 @@ use App\Services\Telegram\TelegramNotifier;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -50,10 +51,11 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('super_admin') ? true : null;
         });
 
+        Event::listen(InquirySubmitted::class, SendInquirySubmittedNotification::class);
+
         Post::observe(PostObserver::class);
         Project::observe(ProjectObserver::class);
         User::observe(UserObserver::class);
-        Inquiry::observe(InquiryObserver::class);
     }
 
     /**

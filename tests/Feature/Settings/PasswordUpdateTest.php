@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Route;
 
 test('password update page is displayed', function () {
     $user = User::factory()->create();
@@ -12,41 +12,13 @@ test('password update page is displayed', function () {
         ->actingAs($user)
         ->get(route('user-password.edit'));
 
-    $response->assertOk();
+    $response->assertRedirect('/admin/profile');
 });
 
-test('password can be updated', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->from(route('user-password.edit'))
-        ->put(route('user-password.update'), [
-            'current_password' => 'password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-    $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('user-password.edit'));
-
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+test('password updates are handled by Filament instead of legacy web routes', function () {
+    expect(Route::has('user-password.update'))->toBeFalse();
 });
 
-test('correct password must be provided to update password', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->from(route('user-password.edit'))
-        ->put(route('user-password.update'), [
-            'current_password' => 'wrong-password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-    $response
-        ->assertSessionHasErrors('current_password')
-        ->assertRedirect(route('user-password.edit'));
+test('legacy password update endpoints are intentionally absent', function () {
+    expect(Route::has('user-password.update'))->toBeFalse();
 });

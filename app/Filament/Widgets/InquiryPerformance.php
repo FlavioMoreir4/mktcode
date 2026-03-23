@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Models\Inquiry;
+use App\Application\Inquiries\Queries\InquiryMetricsQuery;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -12,32 +12,24 @@ class InquiryPerformance extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $counts = Inquiry::getDashboardCounts();
-        $avgResponseTime = Inquiry::getAvgResponseTime();
-        $sla = Inquiry::resolved()->metSla()->count();
-        $totalResolved = Inquiry::resolved()->count();
-
-        $slaRate = $totalResolved > 0
-            ? round(($sla / $totalResolved) * 100)
-            : 0;
+        $metrics = app(InquiryMetricsQuery::class)->summary();
 
         return [
-
-            Stat::make('Pendentes', $counts->pending ?? 0)
+            Stat::make('Pendentes', $metrics['pending'])
                 ->description('Aguardando atendimento')
                 ->color('warning'),
 
-            Stat::make('Atrasadas (+24h)', $counts->late ?? 0)
+            Stat::make('Atrasadas (+24h)', $metrics['late'])
                 ->description('Fora do SLA')
                 ->color('danger'),
 
-            Stat::make('Tempo médio', "{$avgResponseTime}h")
+            Stat::make('Tempo médio', "{$metrics['average_response_time_hours']}h")
                 ->description('Resposta média')
                 ->color('primary'),
 
-            Stat::make('SLA 24h', "{$slaRate}%")
+            Stat::make('SLA 24h', "{$metrics['sla_rate']}%")
                 ->description('Resolvidas em até 24h')
-                ->color($slaRate >= 80 ? 'success' : 'danger'),
+                ->color($metrics['sla_rate'] >= 80 ? 'success' : 'danger'),
         ];
     }
 }

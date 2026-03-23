@@ -3,29 +3,19 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
 test('two factor settings page can be rendered', function () {
     $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
-
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('two-factor.show'))
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/TwoFactor')
-            ->where('twoFactorEnabled', false),
-        );
+        ->assertRedirect('/admin/profile');
 });
 
-test('two factor settings page requires password confirmation when enabled', function () {
+test('two factor settings route remains a bridge to Filament when confirmation is enabled', function () {
     $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
 
     $user = User::factory()->create();
@@ -38,10 +28,10 @@ test('two factor settings page requires password confirmation when enabled', fun
     $response = $this->actingAs($user)
         ->get(route('two-factor.show'));
 
-    $response->assertRedirect(route('password.confirm'));
+    $response->assertRedirect('/admin/profile');
 });
 
-test('two factor settings page does not requires password confirmation when disabled', function () {
+test('two factor settings route remains a bridge to Filament when confirmation is disabled', function () {
     $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
 
     $user = User::factory()->create();
@@ -53,13 +43,10 @@ test('two factor settings page does not requires password confirmation when disa
 
     $this->actingAs($user)
         ->get(route('two-factor.show'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/TwoFactor'),
-        );
+        ->assertRedirect('/admin/profile');
 });
 
-test('two factor settings page returns forbidden response when two factor is disabled', function () {
+test('two factor settings route still redirects to Filament when feature is disabled', function () {
     $this->skipUnlessFortifyFeature(Features::twoFactorAuthentication());
 
     config(['fortify.features' => []]);
@@ -67,7 +54,6 @@ test('two factor settings page returns forbidden response when two factor is dis
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('two-factor.show'))
-        ->assertForbidden();
+        ->assertRedirect('/admin/profile');
 });

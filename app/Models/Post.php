@@ -86,7 +86,14 @@ class Post extends Model implements HasMedia, HasSeo, Sitemapable
 
     public function scopePublished(Builder $query): Builder
     {
-        return $this->scopePublic($query);
+        return $query->public();
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === PostStatus::Published
+            && $this->published_at !== null
+            && $this->published_at->isPast();
     }
 
     public function getSlugOptions(): SlugOptions

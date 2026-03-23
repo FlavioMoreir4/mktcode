@@ -10,13 +10,16 @@ use App\Models\User;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Public team/profile adapter backed by Inertia pages.
+ */
 class UserController extends Controller
 {
     public function show(User $user): Response
     {
         $user->load([
-            'posts' => fn ($q) => $q->with('category')->latest()->limit(5),
-            'projects' => fn ($q) => $q->published()->ordered()->limit(6),
+            'posts' => fn ($q) => $q->public()->with('category')->latest('published_at')->limit(5),
+            'projects' => fn ($q) => $q->published()->ordered()->with('media')->limit(6),
         ]);
 
         return Inertia::render('public/user/Show', [

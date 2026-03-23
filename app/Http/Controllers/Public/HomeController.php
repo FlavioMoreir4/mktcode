@@ -20,7 +20,7 @@ class HomeController extends Controller
         return Inertia::render('Welcome', [
             'canRegister' => Features::enabled(Features::registration()),
             'projects' => PublicProjectResource::collection(
-                Project::published()->latest()->take(3)->get()
+                Project::published()->with(['author.media', 'media'])->latest()->take(3)->get()
             )->resolve(),
             'services' => Service::active()->get(),
             'seo' => $seo->forPage(

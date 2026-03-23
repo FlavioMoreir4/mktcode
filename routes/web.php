@@ -10,11 +10,13 @@ use App\Http\Controllers\Public\PostController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ServiceController;
 use App\Http\Controllers\Public\UserController as PublicUserController;
+use App\SEO\Services\RobotsGenerator;
+use App\SEO\Services\SitemapGenerator;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
 Route::get('/sitemap.xml', function () {
-    app(App\SEO\Services\SitemapGenerator::class)->generate();
+    app(SitemapGenerator::class)->generate();
 
     return response()->file(public_path('sitemap.xml'), [
         'Content-Type' => 'application/xml',
@@ -23,7 +25,7 @@ Route::get('/sitemap.xml', function () {
 
 Route::get('/robots.txt', function () {
     return response(
-        app(App\SEO\Services\RobotsGenerator::class)->generate(),
+        app(RobotsGenerator::class)->generate(),
         200,
         ['Content-Type' => 'text/plain']
     );
@@ -65,7 +67,10 @@ Route::name('public.')->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
-    Route::get('/debug-https', function () {
+});
+
+if (app()->isLocal()) {
+    Route::middleware(['auth', 'verified'])->get('/debug-https', function () {
         return response()->json([
             'isSecure' => request()->isSecure(),
             'scheme' => request()->getScheme(),
@@ -76,6 +81,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'forceRootUrl_active' => URL::to('/'),
         ]);
     });
-});
+}
 
 require __DIR__.'/settings.php';

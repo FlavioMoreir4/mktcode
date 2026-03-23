@@ -13,7 +13,7 @@ class ProjectSitemapProvider implements SitemapProvider
     public function generate(Sitemap $sitemap): void
     {
         Project::public()
-            ->with('media')
+            ->with(['author', 'media'])
             ->cursor()
             ->each(fn (Project $project) => $sitemap->add($project));
     }

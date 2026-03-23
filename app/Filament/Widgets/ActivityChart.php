@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Models\Inquiry;
+use App\Application\Inquiries\Queries\InquiryActivityChartQuery;
 use Filament\Widgets\ChartWidget;
 
 class ActivityChart extends ChartWidget
@@ -15,7 +15,7 @@ class ActivityChart extends ChartWidget
 
     protected function getData(): array
     {
-        $chartData = Inquiry::getActivityChartData(7);
+        $chartData = app(InquiryActivityChartQuery::class)->forDays(7);
 
         return [
             'datasets' => [

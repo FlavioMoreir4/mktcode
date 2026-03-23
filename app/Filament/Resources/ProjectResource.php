@@ -100,6 +100,13 @@ class ProjectResource extends Resource
                             ->icon('heroicon-o-building-office')
                             ->compact()
                             ->schema([
+                                Forms\Components\Select::make('user_id')
+                                    ->label('Responsável')
+                                    ->relationship('author', 'name')
+                                    ->default(auth()->id())
+                                    ->searchable()
+                                    ->preload(),
+
                                 Forms\Components\TextInput::make('client')
                                     ->label('Cliente'),
 

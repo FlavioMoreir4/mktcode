@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Console\Commands\GenerateSitemap;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 
+/**
+ * Regenerates the public user sitemap when profile-facing attributes change.
+ */
 class UserObserver
 {
     private array $sitemapFields = [
@@ -21,12 +25,12 @@ class UserObserver
         );
 
         if (! empty($changed)) {
-            Artisan::queue('app:generate-sitemap');
+            Artisan::queue(GenerateSitemap::SIGNATURE);
         }
     }
 
     public function deleted(User $user): void
     {
-        Artisan::queue('app:generate-sitemap');
+        Artisan::queue(GenerateSitemap::SIGNATURE);
     }
 }

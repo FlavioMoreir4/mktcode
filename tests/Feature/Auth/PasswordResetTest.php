@@ -14,7 +14,7 @@ beforeEach(function () {
 test('reset password link screen can be rendered', function () {
     $response = $this->get(route('password.request'));
 
-    $response->assertOk();
+    $response->assertRedirect(route('filament.admin.auth.password-reset.request'));
 });
 
 test('reset password link can be requested', function () {
@@ -34,10 +34,16 @@ test('reset password screen can be rendered', function () {
 
     $this->post(route('password.email'), ['email' => $user->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = $this->get(route('password.reset', $notification->token));
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        $response = $this->get(route('password.reset', [
+            'token' => $notification->token,
+            'email' => $user->email,
+        ]));
 
-        $response->assertOk();
+        $response->assertRedirectToRoute('filament.admin.auth.password-reset.reset', [
+            'token' => $notification->token,
+            'email' => $user->email,
+        ]);
 
         return true;
     });
@@ -60,7 +66,7 @@ test('password can be reset with valid token', function () {
 
         $response
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('login'));
+            ->assertRedirect(route('login', absolute: false));
 
         return true;
     });

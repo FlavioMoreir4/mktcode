@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Filament\Resources\Concerns\HasRichEditorRendering;
 use App\SEO\Contracts\HasSeo;
 use App\SEO\SeoResolver;
@@ -16,6 +15,7 @@ use Filament\Auth\MultiFactor\Email\Concerns\InteractsWithEmailAuthentication;
 use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,7 +28,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Sitemap\Contracts\Sitemapable;
 use Spatie\Sitemap\Tags\Url;
 
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, HasSeo, Sitemapable
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, HasSeo, MustVerifyEmail, Sitemapable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -72,9 +72,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     protected $appends = ['profile_photo_url', 'cover_photo_url'];
 
+    /**
+     * Filament is the source of truth for admin/session flows in this application.
+     */
     public function canAccessPanel(Panel $panel): bool
     {
-        return true; // Por enquanto liberado, o Shield cuidará das permissões finas.
+        return $panel->getId() !== 'admin' || $this->canAccessAdminPanel();
+    }
+
+    public function canAccessAdminPanel(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'admin', 'editor', 'author'])
+            || $this->getAllPermissions()->isNotEmpty();
     }
 
     /**
@@ -104,7 +113,9 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     public function scopePublic(Builder $query): Builder
     {
-        return $query->whereNotNull('username');
+        return $query
+            ->whereNotNull('username')
+            ->where('username', '!=', '');
     }
 
     public function getProfilePhotoUrlAttribute(): string

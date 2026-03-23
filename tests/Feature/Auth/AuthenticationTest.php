@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Features;
+use Spatie\Permission\Models\Role;
 
 test('login screen can be rendered', function () {
     $response = $this->get(route('login'));
 
-    $response->assertOk();
+    $response->assertRedirect(route('filament.admin.auth.login'));
 });
 
 test('users can authenticate using the login screen', function () {
@@ -22,6 +24,21 @@ test('users can authenticate using the login screen', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
+});
+
+test('admin users are redirected to the Filament panel after login', function () {
+    Role::create(['name' => 'author']);
+
+    $user = User::factory()->create();
+    $user->assignRole('author');
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect('/admin');
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
@@ -73,7 +90,16 @@ test('users can logout', function () {
 test('users are rate limited', function () {
     $user = User::factory()->create();
 
-    RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+    $throttleKey = Str::transliterate(Str::lower($user->email.'|127.0.0.1'));
+
+    foreach (range(1, 5) as $attempt) {
+        $this->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ]);
+    }
+
+    expect(RateLimiter::tooManyAttempts($throttleKey, 5))->toBeTrue();
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,

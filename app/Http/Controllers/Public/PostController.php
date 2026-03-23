@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Public blog adapter backed by Inertia pages.
+ */
 class PostController extends Controller
 {
     public function index(Request $request, SeoService $seo): Response
@@ -34,6 +37,8 @@ class PostController extends Controller
 
     public function show(Post $post, SeoService $seo): Response
     {
+        abort_unless($post->isPubliclyVisible(), 404);
+
         $post->load(['author.media', 'category', 'media', 'tags']);
 
         return Inertia::render('public/blog/Show', [

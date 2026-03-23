@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Responses;
 
-use Illuminate\Http\Request;
+use App\Models\User;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
-use Symfony\Component\HttpFoundation\Response;
 
+/**
+ * Keeps Fortify's POST `/login` endpoint aligned with the application's split:
+ * Filament owns the admin experience, while non-admin users land on the Inertia dashboard.
+ */
 class LoginResponse implements LoginResponseContract
 {
-    public function toResponse(Request $request): Response
+    public function toResponse($request): mixed
     {
         $user = $request->user();
 
-        if ($user->hasRole(['super_admin', 'admin', 'editor', 'author'])) {
+        if ($user instanceof User && $user->canAccessAdminPanel()) {
             return redirect()->intended('/admin');
         }
 

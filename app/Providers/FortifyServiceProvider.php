@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\LoginResponse;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -48,19 +49,25 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn (Request $request) => redirect('/admin/login'));
+        Fortify::loginView(fn (): RedirectResponse => redirect()->route('filament.admin.auth.login'));
 
-        Fortify::resetPasswordView(fn (Request $request) => redirect('/admin/password-reset/request'));
+        Fortify::resetPasswordView(fn (Request $request): RedirectResponse => redirect()->route(
+            'filament.admin.auth.password-reset.reset',
+            array_filter([
+                'token' => $request->route('token'),
+                'email' => $request->string('email')->toString(),
+            ]),
+        ));
 
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => redirect('/admin/password-reset/request'));
+        Fortify::requestPasswordResetLinkView(fn (): RedirectResponse => redirect()->route('filament.admin.auth.password-reset.request'));
 
-        Fortify::verifyEmailView(fn (Request $request) => redirect('/admin/password-reset/request'));
+        Fortify::verifyEmailView(fn (): RedirectResponse => redirect()->route('filament.admin.auth.email-verification.prompt'));
 
-        Fortify::registerView(fn () => redirect('/admin/login'));
+        Fortify::registerView(fn (): RedirectResponse => redirect()->route('filament.admin.auth.login'));
 
-        Fortify::twoFactorChallengeView(fn () => redirect('/admin/login'));
+        Fortify::twoFactorChallengeView(fn (): RedirectResponse => redirect()->route('filament.admin.auth.login'));
 
-        Fortify::confirmPasswordView(fn () => redirect('/admin/login'));
+        Fortify::confirmPasswordView(fn (): RedirectResponse => redirect()->route('filament.admin.auth.login'));
     }
 
     /**

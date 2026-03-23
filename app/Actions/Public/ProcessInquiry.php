@@ -4,23 +4,20 @@ declare(strict_types=1);
 
 namespace App\Actions\Public;
 
-use App\Models\Inquiry;
-use Illuminate\Support\Facades\Log;
+use App\Application\Inquiries\Actions\SubmitInquiry;
 
+/**
+ * Backwards-compatible bridge while public controllers move to the application use case namespace.
+ */
 class ProcessInquiry
 {
+    public function __construct(private readonly SubmitInquiry $submitInquiry) {}
+
     /**
-     * Process the inquiry.
-     *
-     * @param  array<string, string>  $data
+     * @param  array{name: string, email: string, message: string, whatsapp?: string|null}  $data
      */
     public function execute(array $data): void
     {
-        $inquiry = Inquiry::create($data);
-
-        Log::info('Inquiry processed', [
-            'inquiry_id' => $inquiry->id,
-            'status' => $inquiry->status->value,
-        ]);
+        $this->submitInquiry->handle($data);
     }
 }

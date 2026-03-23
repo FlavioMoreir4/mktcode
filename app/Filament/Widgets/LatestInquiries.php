@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Enums\InquiryStatus;
 use App\Models\Inquiry;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
@@ -56,7 +57,7 @@ class LatestInquiries extends TableWidget
                     ->since(),
             ])
 
-            ->recordClasses(fn (Inquiry $record) => $record->status === 'new'
+            ->recordClasses(fn (Inquiry $record) => $record->status === InquiryStatus::New
                     ? 'bg-gray-50 dark:bg-gray-800/40'
                     : null
             )
@@ -69,15 +70,15 @@ class LatestInquiries extends TableWidget
                 Action::make('atender')
                     ->icon('heroicon-o-play')
                     ->color('warning')
-                    ->visible(fn (Inquiry $record) => $record->status === 'new')
-                    ->action(fn (Inquiry $record) => $record->update(['status' => 'in_progress'])
+                    ->visible(fn (Inquiry $record) => $record->status === InquiryStatus::New)
+                    ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::InProgress])
                     ),
 
                 Action::make('resolver')
                     ->icon('heroicon-o-check')
                     ->color('success')
-                    ->visible(fn (Inquiry $record) => $record->status !== 'resolved')
-                    ->action(fn (Inquiry $record) => $record->update(['status' => 'resolved'])
+                    ->visible(fn (Inquiry $record) => $record->status !== InquiryStatus::Resolved)
+                    ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::Resolved])
                     ),
 
                 ViewAction::make()

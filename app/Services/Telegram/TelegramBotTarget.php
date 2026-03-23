@@ -31,4 +31,9 @@ class TelegramBotTarget
     {
         return $this->chatId;
     }
+
+    public function getKey(): string
+    {
+        return $this->chatId;
+    }
 }

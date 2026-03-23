@@ -35,6 +35,14 @@ class PublicProjectResource extends PublicResource
             'stack' => $this->stack,
             'url' => $this->url,
             'featured' => $this->featured,
+            'author' => $this->whenLoaded('author', fn (): ?array => $this->author
+                ? [
+                    'name' => $this->author->name,
+                    'username' => $this->author->username,
+                    'avatar' => $this->author->profile_photo_url,
+                ]
+                : null
+            ),
 
             /*
             |--------------------------------------------------------------------------

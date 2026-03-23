@@ -9,14 +9,18 @@ use Illuminate\Console\Command;
 
 class GenerateSitemap extends Command
 {
-    protected $signature = 'seo:generate-sitemap';
+    public const SIGNATURE = 'seo:generate-sitemap';
+
+    protected $signature = self::SIGNATURE;
 
     protected $description = 'Generate sitemap files';
 
-    public function handle(SitemapGenerator $generator)
+    public function handle(SitemapGenerator $generator): int
     {
         $this->info('Generating sitemap...');
         $generator->generate();
         $this->info('Sitemap generated.');
+
+        return self::SUCCESS;
     }
 }

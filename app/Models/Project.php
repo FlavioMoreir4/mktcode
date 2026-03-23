@@ -10,6 +10,7 @@ use App\SEO\Contracts\HasSeo;
 use App\SEO\SeoResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -38,6 +39,7 @@ class Project extends Model implements HasMedia, HasSeo, Sitemapable
         'sort_order',
         'seo_title',
         'seo_description',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -87,7 +89,7 @@ class Project extends Model implements HasMedia, HasSeo, Sitemapable
 
     public function scopeFeatured(Builder $query): Builder
     {
-        return $this->scopePublished($query)->where('featured', true);
+        return $query->published()->where('featured', true);
     }
 
     public function scopePublic(Builder $query): Builder
@@ -101,7 +103,12 @@ class Project extends Model implements HasMedia, HasSeo, Sitemapable
 
     public function scopePublicOrdered(Builder $query): Builder
     {
-        return $this->scopePublic($query);
+        return $query->public();
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === ProjectStatus::Published;
     }
 
     public function getSlugOptions(): SlugOptions
@@ -115,5 +122,10 @@ class Project extends Model implements HasMedia, HasSeo, Sitemapable
     {
         $this->addMediaCollection('cover')->singleFile()->useDisk('public');
         $this->addMediaCollection('screenshots')->useDisk('public');
+    }
+
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
