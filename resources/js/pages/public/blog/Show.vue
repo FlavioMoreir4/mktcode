@@ -1,16 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import hljs from 'highlight.js';
-import {
-    MapPinIcon,
-    Github,
-    Linkedin,
-    Twitter,
-    Instagram,
-    Youtube,
-    Globe,
-    Link as LucideLink,
-} from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,10 +13,11 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import blog from '@/routes/public/blog';
 import user from '@/routes/public/user';
-import type { PublicPostShow } from '@/types';
+import type { PublicPostDetailData, SeoData } from '@/types/public';
 
 const props = defineProps<{
-    post: PublicPostShow;
+    post: PublicPostDetailData;
+    seo?: SeoData;
 }>();
 
 // Reading progress
@@ -72,16 +63,6 @@ const shareOnX = () => {
     window.open(url, '_blank', 'noopener');
 };
 
-const socialIconMap: Record<string, unknown> = {
-    github: Github,
-    linkedin: Linkedin,
-    twitter: Twitter,
-    instagram: Instagram,
-    youtube: Youtube,
-    website: Globe,
-};
-const getSocialIcon = (p: string) => socialIconMap[p] ?? LucideLink;
-
 onMounted(() => {
     hljs.highlightAll();
     window.addEventListener('scroll', updateProgress, { passive: true });
@@ -93,7 +74,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <SeoHead v-bind="post.seo" />
+    <SeoHead v-bind="seo" />
 
     <PublicLayout>
         <!-- Reading Progress Bar -->
@@ -225,8 +206,8 @@ onUnmounted(() => {
                     >
                         <div v-if="post.author" class="flex items-center gap-2">
                             <img
-                                v-if="post.author.avatar"
-                                :src="post.author.avatar"
+                                v-if="post.author.avatar_url"
+                                :src="post.author.avatar_url"
                                 :alt="post.author.name"
                                 class="h-7 w-7 rounded-full object-cover ring-1 ring-border"
                             />
@@ -273,12 +254,15 @@ onUnmounted(() => {
 
                 <!-- Featured Image -->
                 <div
-                    v-if="post.cover"
+                    v-if="post.media?.cover"
                     class="mb-16 overflow-hidden rounded-3xl bg-muted shadow-lg"
                 >
                     <img
-                        :src="post.cover"
+                        :src="post.media?.cover?.url"
                         :alt="post.title"
+                        fetchpriority="high"
+                        loading="eager"
+                        decoding="sync"
                         class="aspect-video w-full object-cover transition-transform duration-700 hover:scale-[1.02]"
                     />
                 </div>
@@ -375,11 +359,11 @@ onUnmounted(() => {
                         <HoverCard>
                             <HoverCardTrigger>
                                 <div
-                                    v-if="post.author.avatar"
+                                    v-if="post.author.avatar_url"
                                     class="h-16 w-16 shrink-0 overflow-hidden rounded-full ring-2 ring-border"
                                 >
                                     <img
-                                        :src="post.author.avatar"
+                                        :src="post.author.avatar_url"
                                         :alt="post.author.name"
                                         class="h-full w-full object-cover"
                                     />
@@ -414,7 +398,7 @@ onUnmounted(() => {
                                 >
                                     <Avatar class="h-16 w-16">
                                         <AvatarImage
-                                            :src="post.author.avatar || ''"
+                                            :src="post.author.avatar_url || ''"
                                         />
                                         <AvatarFallback>{{
                                             post.author.name.charAt(0)
@@ -424,38 +408,7 @@ onUnmounted(() => {
                                         <h4 class="text-lg font-semibold">
                                             {{ post.author.name }}
                                         </h4>
-                                        <div class="flex items-center">
-                                            <MapPinIcon
-                                                class="mr-2 h-3 w-3 opacity-70"
-                                            />
-                                            <span
-                                                class="text-xs text-muted-foreground"
-                                            >
-                                                {{ post.author.location }}
-                                            </span>
-                                        </div>
-                                        <!-- Social Links -->
-                                        <div
-                                            class="flex items-center gap-2 pt-2"
-                                        >
-                                            <a
-                                                v-for="(link, i) in post.author
-                                                    .social"
-                                                :key="i"
-                                                :href="link.url"
-                                                target="_blank"
-                                                class="text-muted-foreground hover:text-primary"
-                                            >
-                                                <component
-                                                    :is="
-                                                        getSocialIcon(
-                                                            link.platform,
-                                                        )
-                                                    "
-                                                    class="h-4 w-4"
-                                                />
-                                            </a>
-                                        </div>
+
                                     </div>
                                 </div>
                             </HoverCardContent>

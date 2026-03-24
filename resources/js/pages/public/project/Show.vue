@@ -11,41 +11,20 @@ import {
     Share2,
     Check,
 } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { projects, contact } from '@/routes/public';
-import type { Project } from '@/types/models';
+import type { PublicProjectViewData } from '@/types/public';
 
-const props = defineProps<{
-    project: Project;
-}>();
+interface Props {
+    project: PublicProjectViewData;
+}
 
-// ─── Media helpers ────────────────────────────────────────────────────────────
-const coverImage = computed(
-    () =>
-        props.project.media?.find((m) => m.collection_name === 'cover')
-            ?.original_url ??
-        props.project.media?.[0]?.original_url ??
-        null,
-);
+defineProps<Props>();
 
-const screenshots = computed(
-    () =>
-        props.project.media?.filter(
-            (m) => m.collection_name === 'screenshots',
-        ) ?? [],
-);
 
-// ─── Tag name helper ──────────────────────────────────────────────────────────
-const tagName = (tag: any): string => {
-    if (typeof tag.name === 'string') {
-        return tag.name;
-    }
-
-    return tag.name?.en ?? tag.name?.pt ?? Object.values(tag.name)[0] ?? '';
-};
 
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
 const lightboxSrc = ref<string | null>(null);
@@ -114,7 +93,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <SeoHead v-bind="project.seo" />
+    <SeoHead />
 
     <PublicLayout>
         <!-- Reading progress bar -->
@@ -179,59 +158,8 @@ onUnmounted(() => {
             <div class="mx-auto mb-16 max-w-7xl px-6">
                 <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
                     <!-- Left: title + meta strip (mobile) -->
-                    <div class="reveal space-y-8 lg:col-span-7">
-                        <!-- Category badge -->
-                        <p
-                            v-if="project.category"
-                            class="text-xs font-bold tracking-widest text-primary/70 uppercase"
-                        >
-                            {{ project.category }}
-                        </p>
+                    <div class="space-y-8 lg:col-span-7">
 
-                        <div class="space-y-4">
-                            <h1
-                                class="text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl"
-                            >
-                                {{ project.title }}
-                            </h1>
-                            <p
-                                v-if="project.description"
-                                class="text-xl leading-relaxed text-muted-foreground"
-                            >
-                                {{ project.description }}
-                            </p>
-                        </div>
-
-                        <!-- Highlights -->
-                        <ul v-if="project.highlights?.length" class="space-y-2">
-                            <li
-                                v-for="h in project.highlights"
-                                :key="h"
-                                class="flex items-start gap-3 text-base"
-                            >
-                                <span
-                                    class="mt-1 leading-none font-bold text-primary"
-                                    >→</span
-                                >
-                                <span class="text-muted-foreground">{{
-                                    h
-                                }}</span>
-                            </li>
-                        </ul>
-
-                        <!-- Tags -->
-                        <div
-                            v-if="project.tags?.length"
-                            class="flex flex-wrap gap-2"
-                        >
-                            <span
-                                v-for="tag in project.tags"
-                                :key="tag.id"
-                                class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground"
-                            >
-                                #{{ tagName(tag) }}
-                            </span>
-                        </div>
 
                         <!-- Meta strip — mobile/tablet only -->
                         <div
@@ -380,15 +308,18 @@ onUnmounted(() => {
 
             <!-- ── Cover image ─────────────────────────────────────────── -->
             <div
-                v-if="project.cover"
-                class="reveal mx-auto mb-20 max-w-7xl px-6"
+                v-if="project.media?.cover"
+                class="mx-auto mb-20 max-w-7xl px-6"
             >
                 <div
                     class="relative aspect-[21/9] overflow-hidden rounded-[2.5rem] border border-border/50 shadow-2xl"
                 >
                     <img
-                        :src="project.cover"
+                        :src="project.media?.cover.url"
                         :alt="project.title"
+                        fetchpriority="high"
+                        loading="eager"
+                        decoding="sync"
                         class="h-full w-full object-cover transition-transform duration-700 hover:scale-[1.02]"
                     />
                     <div
@@ -398,7 +329,7 @@ onUnmounted(() => {
             </div>
 
             <!-- ── Content (case study) ────────────────────────────────── -->
-            <div class="reveal mx-auto max-w-3xl px-6">
+            <div class="mx-auto max-w-3xl px-6">
                 <div
                     class="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:underline prose-blockquote:border-primary/50 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-code:rounded-md prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:rounded-2xl prose-pre:border prose-pre:border-border prose-pre:bg-muted/50 prose-img:rounded-3xl prose-img:shadow-lg prose-hr:border-border"
                 >
@@ -408,7 +339,7 @@ onUnmounted(() => {
 
             <!-- ── Screenshots gallery ────────────────────────────────── -->
             <div
-                v-if="screenshots.length"
+                v-if="project.media?.gallery"
                 class="reveal mx-auto mt-24 max-w-7xl px-6"
             >
                 <div class="mb-10 text-center">
@@ -428,20 +359,20 @@ onUnmounted(() => {
                 <!-- 1 screenshot: full-width; 2+: grid -->
                 <div
                     :class="
-                        screenshots.length === 1
+                        project.media?.gallery.length === 1
                             ? 'mx-auto max-w-4xl'
                             : 'grid grid-cols-1 gap-6 md:grid-cols-2'
                     "
                 >
                     <button
-                        v-for="(img, i) in screenshots"
-                        :key="img.id"
+                        v-for="(img, i) in project.media?.gallery"
+                        :key="i"
                         class="group relative aspect-video w-full overflow-hidden rounded-3xl border border-border/50 bg-muted transition-all duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                         :aria-label="`Ver screenshot ${i + 1} em tamanho completo`"
-                        @click="openLightbox(img.original_url)"
+                        @click="openLightbox(img.url)"
                     >
                         <img
-                            :src="img.original_url"
+                            :src="img.url"
                             :alt="`${project.title} — screenshot ${i + 1}`"
                             class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         />

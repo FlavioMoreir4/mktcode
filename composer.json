@@ -33,6 +33,8 @@
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "filament/upgrade": "^5.0",
+        "laradumps/laradumps": "^5.2",
+        "laradumps/laradumps-core": "^4.0",
         "larastan/larastan": "^3.9",
         "laravel/boost": "^2.3",
         "laravel/pail": "^1.2.2",

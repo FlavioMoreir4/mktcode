@@ -1,55 +1,42 @@
-import type { PaginatedResponse } from '../models';
+
 
 export interface SeoData {
     title: string | null;
     description: string | null;
     image: string | null;
-    keywords?: string | null;
+    keywords?: string[] | null;
     author?: string | null;
 }
 
-export interface PublicPost {
-    title: string;
+export interface SocialLink {
+    platform: string;
+    url: string;
+}
+
+export interface PublicMediaData {
+    cover: { url: string } | null;
+    gallery: { url: string }[];
+}
+
+export interface PublicAuthorData {
+    name: string;
+    username: string;
+    title: string | null;
+    avatar_url: string | null;
+    profile_url: string | null;
+}
+
+export interface PublicCategoryData {
+    name: string;
     slug: string;
-    excerpt: string | null;
-    published_at: string | null;
-    word_count: number;
-    reading_time: number;
-
-    author?: {
-        name: string;
-        username: string;
-        avatar: string | null;
-    };
-
-    category?: {
-        name: string;
-        slug: string;
-    };
-
-    tags?: { name: string; slug: string }[];
-
-    cover?: string | null;
-    seo: SeoData;
 }
 
-export interface PublicPostShow extends PublicPost {
-    body: string;
-    markdown: string;
-    plain_text: string;
-    created_at: string | null;
-    updated_at: string | null;
-
-    author?: {
-        name: string;
-        username: string;
-        avatar: string | null;
-        location?: string | null;
-        social?: SocialLink[] | null;
-    };
+export interface PublicTagData {
+    name: string | Record<string, string>;
+    slug: string | Record<string, string>;
 }
 
-export interface PublicProject {
+export interface PublicProjectViewData {
     title: string;
     slug: string;
     description: string | null;
@@ -59,46 +46,40 @@ export interface PublicProject {
     stack: string[] | null;
     url: string | null;
     featured: boolean;
-
-    cover?: string | null;
-    gallery?: string[];
-
-    seo: SeoData;
+    author?: PublicAuthorData | null;
+    media: PublicMediaData | null;
 }
 
-export interface PublicUser {
+export interface PublicPostSummaryData {
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    published_at: string | null;
+    word_count: number;
+    reading_time: number;
+    media: PublicMediaData | null;
+    author: PublicAuthorData | null;
+    category: PublicCategoryData | null;
+    tags: PublicTagData[];
+}
+
+export interface PublicPostDetailData extends PublicPostSummaryData {
+    body: string | null;
+    markdown: string | null;
+    plain_text: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+}
+
+export interface PublicProfileViewData {
     name: string;
     username: string;
     title: string | null;
     bio: string | null;
     location: string | null;
-
-    avatar: string | null;
-    cover: string | null;
-
+    avatar: string;
+    cover: string;
     social: SocialLink[] | null;
-
-    projects: PaginatedResponse<PublicProject>;
-    posts: PaginatedResponse<PublicPost>;
-
-    seo: SeoData;
+    projects: { data: PublicProjectViewData[] };
+    posts: { data: PublicPostSummaryData[] };
 }
-
-export interface SocialLink {
-    platform: string;
-    url: string;
-}
-
-// export interface PaginatedResponse<T> {
-//     data: T[];
-//     meta: {
-//         current_page: number;
-//         last_page: number;
-//         per_page: number;
-//         total: number;
-//     };
-//     links: {
-//         next: string | null;
-//         prev: string | null;
-//     };
-// }

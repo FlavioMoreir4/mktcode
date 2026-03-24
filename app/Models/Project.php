@@ -52,6 +52,11 @@ class Project extends Model implements HasMedia
         return $this->content;
     }
 
+    protected function getRichContentField(): string
+    {
+        return 'content';
+    }
+
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()

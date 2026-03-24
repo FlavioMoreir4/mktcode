@@ -25,11 +25,12 @@ final readonly class PublicProjectViewData implements PublicPayloadData
         public ?string $url,
         public bool $featured,
         public ?array $author,
-        public ?string $cover,
-        public array $gallery,
+        // public ?string $cover,
+        public ?array $media,
+        // public array $gallery,
     ) {}
 
-    public static function fromModel(Project $project): self
+    public static function fromModel(Project $project, ?array $media = null): self
     {
         return new self(
             title: $project->title,
@@ -44,8 +45,9 @@ final readonly class PublicProjectViewData implements PublicPayloadData
             author: $project->relationLoaded('author') && $project->author
                 ? PublicAuthorData::summary($project->author)->toArray()
                 : null,
-            cover: $project->getFirstMediaUrl('cover') ?: null,
-            gallery: $project->getMedia('screenshots')->map->getUrl()->all(),
+            // cover: $project->getFirstMediaUrl('cover') ?: null,
+            media: $media,
+            // gallery: $project->getMedia('screenshots')->map->getUrl()->all(),
         );
     }
 
@@ -65,8 +67,9 @@ final readonly class PublicProjectViewData implements PublicPayloadData
             'url' => $this->url,
             'featured' => $this->featured,
             'author' => $this->author,
-            'cover' => $this->cover,
-            'gallery' => $this->gallery,
+            // 'cover' => $this->cover,
+            'media' => $this->media,
+            // 'gallery' => $this->gallery,
         ];
     }
 }

@@ -51,6 +51,11 @@ class Post extends Model implements HasMedia
         return $this->body;
     }
 
+    protected function getRichContentField(): string
+    {
+        return 'body';
+    }
+
     public function getSlugOptions(): SlugOptions
     {
         return SlugOptions::create()
@@ -62,6 +67,7 @@ class Post extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('cover')->singleFile()->useDisk('public');
+
     }
 
     public function author(): BelongsTo

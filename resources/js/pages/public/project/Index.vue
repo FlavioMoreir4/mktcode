@@ -6,10 +6,11 @@ import ProjectCard from '@/components/marketing/ProjectCard.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { contact } from '@/routes/public';
-import type { PaginatedResponse, Project } from '@/types';
+import type { PaginatedResponse } from '@/types';
+import type { PublicProjectViewData } from '@/types/public';
 
 const props = defineProps<{
-    projects: PaginatedResponse<Project>;
+    projects: PaginatedResponse<PublicProjectViewData>;
 }>();
 
 // ─── Featured project (first featured, or first overall) ─────────────────────
@@ -135,7 +136,11 @@ onUnmounted(() => observer?.disconnect());
                         Destaque
                     </p>
 
-                    <ProjectCard :project="featured" variant="featured" />
+                    <ProjectCard
+                        :project="featured"
+                        variant="featured"
+                        is-priority
+                    />
                 </div>
 
                 <!-- ── Stack filter ────────────────────────────────────── -->
@@ -167,7 +172,7 @@ onUnmounted(() => observer?.disconnect());
                 >
                     <div
                         v-for="(project, i) in filteredRest"
-                        :key="project.id"
+                        :key="i"
                         class="reveal"
                         :style="{ '--reveal-delay': `${(i % 3) * 70}ms` }"
                     >

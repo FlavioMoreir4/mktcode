@@ -10,6 +10,7 @@ use App\Application\Portfolio\Queries\ListPublicProjectsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\PublicProjectCollection;
 use App\Http\Resources\Public\PublicProjectResource;
+use App\Infrastructure\Shared\Media\PublicMediaService;
 use App\Infrastructure\Shared\SEO\SeoService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,23 +21,28 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class ProjectController extends Controller
 {
-    public function index(ListPublicProjectsQuery $listPublicProjects, SeoService $seo): Response
+    public function index(ListPublicProjectsQuery $listPublicProjects, SeoService $seoService, PublicMediaService $mediaService): Response
     {
         $projects = $listPublicProjects->paginate(9);
         $projects->setCollection(
-            $projects->getCollection()->map(fn ($project) => PublicProjectViewData::fromModel($project))
+            $projects->getCollection()->map(function ($project) use ($mediaService) {
+                return PublicProjectViewData::fromModel(
+                    $project,
+                    $mediaService->for($project)->toArray()
+                );
+            })
         );
 
         return Inertia::render('public/project/Index', [
             'projects' => new PublicProjectCollection($projects),
-            'seo' => $seo->forPage(
+            'seo' => $seoService->forPage(
                 route: 'public.projects',
                 title: 'Projetos',
             ),
         ]);
     }
 
-    public function show(string $project, GetPublicProjectQuery $getPublicProject, SeoService $seo): Response
+    public function show(string $project, GetPublicProjectQuery $getPublicProject, SeoService $seoService, PublicMediaService $mediaService): Response
     {
         $resolvedProject = $getPublicProject->findBySlug($project);
         if ($resolvedProject === null) {
@@ -44,8 +50,8 @@ class ProjectController extends Controller
         }
 
         return Inertia::render('public/project/Show', [
-            'project' => PublicProjectResource::make(PublicProjectViewData::fromModel($resolvedProject))->resolve(),
-            'seo' => $seo->forProject($resolvedProject),
+            'project' => PublicProjectResource::make(PublicProjectViewData::fromModel($resolvedProject, $mediaService->for($resolvedProject)->toArray()))->resolve(),
+            'seo' => $seoService->forProject($resolvedProject),
         ]);
     }
 }

@@ -1,4 +1,4 @@
-import { SeoData } from './public';
+import type { SeoData } from './public';
 
 export interface Media {
     id: number;
@@ -18,6 +18,12 @@ export interface Media {
     created_at: string;
     updated_at: string;
     custom_properties: Record<string, any>;
+    cover?: {
+        url: string;
+    };
+    gallery?: {
+        url: string;
+    }[];
 }
 
 export interface Category {
@@ -117,7 +123,7 @@ export interface Project {
 
     // Relationships
     tags?: Tag[];
-    media?: Media[];
+    media?: Media;
 }
 
 export interface Service {

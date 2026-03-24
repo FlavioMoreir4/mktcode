@@ -22,7 +22,8 @@ final readonly class PublicPostViewData implements PublicPayloadData
         public ?string $publishedAt,
         public int $wordCount,
         public int $readingTime,
-        public ?string $cover,
+        // public ?string $cover,
+        public ?array $media,
         public ?array $author,
         public ?array $category,
         public array $tags,
@@ -33,7 +34,7 @@ final readonly class PublicPostViewData implements PublicPayloadData
         public ?string $updatedAt = null,
     ) {}
 
-    public static function summary(Post $post): self
+    public static function summary(Post $post, ?array $media = null): self
     {
         return new self(
             title: $post->title,
@@ -42,7 +43,8 @@ final readonly class PublicPostViewData implements PublicPayloadData
             publishedAt: $post->published_at?->toIso8601String(),
             wordCount: $post->word_count,
             readingTime: $post->reading_time,
-            cover: $post->getFirstMediaUrl('cover') ?: null,
+            // cover: $post->getFirstMediaUrl('cover') ?: null,
+            media: $media,
             author: $post->relationLoaded('author') && $post->author
                 ? PublicAuthorData::summary($post->author)->toArray()
                 : null,
@@ -55,7 +57,7 @@ final readonly class PublicPostViewData implements PublicPayloadData
         );
     }
 
-    public static function detail(Post $post): self
+    public static function detail(Post $post, ?array $media = null): self
     {
         return new self(
             title: $post->title,
@@ -64,7 +66,8 @@ final readonly class PublicPostViewData implements PublicPayloadData
             publishedAt: $post->published_at?->toIso8601String(),
             wordCount: $post->word_count,
             readingTime: $post->reading_time,
-            cover: $post->getFirstMediaUrl('cover') ?: null,
+            // cover: $post->getFirstMediaUrl('cover') ?: null,
+            media: $media,
             author: $post->relationLoaded('author') && $post->author
                 ? PublicAuthorData::detail($post->author)->toArray()
                 : null,
@@ -94,7 +97,8 @@ final readonly class PublicPostViewData implements PublicPayloadData
             'published_at' => $this->publishedAt,
             'word_count' => $this->wordCount,
             'reading_time' => $this->readingTime,
-            'cover' => $this->cover,
+            // 'cover' => $this->cover,
+            'media' => $this->media,
             'author' => $this->author,
             'category' => $this->category,
             'tags' => $this->tags,

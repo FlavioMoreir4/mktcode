@@ -14,10 +14,12 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import { contact } from '@/routes/public';
 import blog from '@/routes/public/blog';
-import type { PaginatedResponse, PublicPost } from '@/types';
+import type { PaginatedResponse } from '@/types';
+import type { PublicPostSummaryData, SeoData } from '@/types/public';
 
 const props = defineProps<{
-    posts: PaginatedResponse<PublicPost>;
+    posts: PaginatedResponse<PublicPostSummaryData>;
+    seo?: SeoData;
 }>();
 
 // ─── Featured = first post on page 1, otherwise none ─────────────────────────
@@ -69,7 +71,7 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead v-bind="posts.seo" />
+    <SeoHead v-bind="seo" />
 
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">
@@ -132,9 +134,12 @@ onUnmounted(() => observer?.disconnect());
                             class="relative aspect-video overflow-hidden bg-muted lg:aspect-auto"
                         >
                             <img
-                                v-if="featuredPost.cover"
-                                :src="featuredPost.cover"
+                                v-if="featuredPost.media?.cover"
+                                :src="featuredPost.media.cover.url"
                                 :alt="featuredPost.title"
+                                fetchpriority="high"
+                                loading="eager"
+                                decoding="sync"
                                 class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                             />
                             <div
@@ -232,8 +237,8 @@ onUnmounted(() => observer?.disconnect());
                                     class="flex items-center gap-2.5"
                                 >
                                     <img
-                                        v-if="featuredPost.author.avatar"
-                                        :src="featuredPost.author.avatar"
+                                        v-if="featuredPost.author.avatar_url"
+                                        :src="featuredPost.author.avatar_url"
                                         :alt="featuredPost.author.name"
                                         class="h-8 w-8 rounded-full object-cover ring-1 ring-border"
                                     />
@@ -273,8 +278,8 @@ onUnmounted(() => observer?.disconnect());
                             aria-hidden="true"
                         >
                             <img
-                                v-if="post.cover"
-                                :src="post.cover"
+                                v-if="post.media?.cover"
+                                :src="post.media.cover.url"
                                 :alt="post.title"
                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                             />
@@ -360,8 +365,8 @@ onUnmounted(() => observer?.disconnect());
                                     class="flex items-center gap-2"
                                 >
                                     <img
-                                        v-if="post.author.avatar"
-                                        :src="post.author.avatar"
+                                        v-if="post.author.avatar_url"
+                                        :src="post.author.avatar_url"
                                         :alt="post.author.name"
                                         class="h-6 w-6 rounded-full object-cover ring-1 ring-border"
                                     />

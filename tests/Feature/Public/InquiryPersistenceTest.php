@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-use function Pest\Laravel\assertDatabaseCount;
-use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Laravel\post;
 use App\Notifications\Telegram\NewInquiryNotification;
 use App\Services\Telegram\TelegramBotTarget;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+
+use function Pest\Laravel\assertDatabaseCount;
+use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\post;
 
 it('persists a contact inquiry in the database', function () {
     Notification::fake();

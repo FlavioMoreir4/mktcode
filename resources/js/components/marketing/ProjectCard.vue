@@ -12,17 +12,19 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import projects from '@/routes/public/projects';
-import type { PublicProject } from '@/types/public';
+import type { PublicProjectViewData } from '@/types/public';
 
 interface Props {
-    project: PublicProject;
+    project: PublicProjectViewData;
     variant?: 'default' | 'featured';
     withCover?: boolean;
+    isPriority?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
     variant: 'default',
     withCover: true,
+    isPriority: false,
 });
 </script>
 
@@ -42,9 +44,12 @@ const props = withDefaults(defineProps<Props>(), {
                 class="aspect-video overflow-hidden bg-muted md:aspect-auto md:w-1/2"
             >
                 <img
-                    v-if="project.cover"
-                    :src="project.cover"
+                    v-if="project.media?.cover"
+                    :src="project.media.cover.url"
                     :alt="project.title"
+                    :fetchpriority="isPriority ? 'high' : undefined"
+                    :loading="isPriority ? 'eager' : 'lazy'"
+                    :decoding="isPriority ? 'sync' : 'async'"
                     class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                 />
                 <div
@@ -166,12 +171,15 @@ const props = withDefaults(defineProps<Props>(), {
 
             <!-- Thumbnail -->
             <div
-                v-if="project.cover && withCover"
+                v-if="project.media?.cover && withCover"
                 class="aspect-[16/10] overflow-hidden bg-muted"
             >
                 <img
-                    :src="project.cover"
+                    :src="project.media.cover.url"
                     :alt="project.title"
+                    :fetchpriority="isPriority ? 'high' : undefined"
+                    :loading="isPriority ? 'eager' : 'lazy'"
+                    :decoding="isPriority ? 'sync' : 'async'"
                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                 />
             </div>

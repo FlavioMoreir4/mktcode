@@ -15,6 +15,23 @@ trait HasRichEditorRendering
 {
     abstract protected function getEditorContent(): string|array|null;
 
+    abstract protected function getRichContentField(): string; // Example: 'body' or 'content'
+
+    protected static function bootHasRichEditorRendering(): void
+    {
+        static::saving(function ($model) {
+            $field = method_exists($model, 'getRichContentField') ? $model->getRichContentField() : 'body';
+
+            // Only update if the base editor content field is dirty
+            if ($model->isDirty($field)) {
+                $model->html = $model->parseHtml();
+                $model->plain_text = $model->parsePlainText();
+                $model->word_count = $model->parseWordCount();
+                $model->reading_time = $model->parseReadingTime();
+            }
+        });
+    }
+
     protected function isRichEditorContent(): bool
     {
         return is_array($this->getEditorContent());
@@ -26,6 +43,15 @@ trait HasRichEditorRendering
     }
 
     public function getHtmlAttribute(): string
+    {
+        if (array_key_exists('html', $this->attributes) && $this->attributes['html'] !== null) {
+            return $this->attributes['html'];
+        }
+
+        return $this->parseHtml();
+    }
+
+    public function parseHtml(): string
     {
         if (! $this->getEditorContent()) {
             return '';
@@ -54,6 +80,11 @@ trait HasRichEditorRendering
 
     public function getMarkdownAttribute(): string
     {
+        return $this->parseMarkdown();
+    }
+
+    public function parseMarkdown(): string
+    {
         if (! $this->getEditorContent()) {
             return '';
         }
@@ -67,7 +98,16 @@ trait HasRichEditorRendering
 
     public function getPlainTextAttribute(): string
     {
-        return Str::of($this->html)
+        if (array_key_exists('plain_text', $this->attributes) && $this->attributes['plain_text'] !== null) {
+            return $this->attributes['plain_text'];
+        }
+
+        return $this->parsePlainText();
+    }
+
+    public function parsePlainText(): string
+    {
+        return Str::of($this->parseHtml())
             ->stripTags()
             ->replace('&nbsp;', ' ')
             ->squish()
@@ -94,11 +134,29 @@ trait HasRichEditorRendering
 
     public function getWordCountAttribute(): int
     {
-        return str_word_count($this->plain_text);
+        if (array_key_exists('word_count', $this->attributes) && $this->attributes['word_count'] !== null) {
+            return (int) $this->attributes['word_count'];
+        }
+
+        return $this->parseWordCount();
+    }
+
+    public function parseWordCount(): int
+    {
+        return str_word_count($this->parsePlainText());
     }
 
     public function getReadingTimeAttribute(): int
     {
-        return max(1, (int) ceil($this->word_count / 200));
+        if (array_key_exists('reading_time', $this->attributes) && $this->attributes['reading_time'] !== null) {
+            return (int) $this->attributes['reading_time'];
+        }
+
+        return $this->parseReadingTime();
+    }
+
+    public function parseReadingTime(): int
+    {
+        return max(1, (int) ceil($this->parseWordCount() / 200));
     }
 }

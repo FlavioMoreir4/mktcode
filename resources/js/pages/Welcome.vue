@@ -30,10 +30,11 @@ import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { projects as projectsStore } from '@/routes/public';
 import { store as inquiryStore } from '@/routes/public/inquiry';
-import type { PublicProject, SeoData, Service } from '@/types';
+import type { SeoData, Service } from '@/types';
+import type { PublicProjectViewData } from '@/types/public';
 
 interface Props {
-    projects: PublicProject[];
+    projects: PublicProjectViewData[];
     services: Service[];
     seo: SeoData;
 }
@@ -269,6 +270,9 @@ const submit = () => {
                                     :src="logo"
                                     alt=""
                                     aria-hidden="true"
+                                    fetchpriority="high"
+                                    loading="eager"
+                                    decoding="sync"
                                     class="relative h-96 w-96 object-contain drop-shadow-[0_0_40px_hsl(var(--primary)/0.25)]"
                                 />
                             </div>

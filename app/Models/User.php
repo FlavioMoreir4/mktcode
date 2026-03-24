@@ -97,6 +97,11 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->bio;
     }
 
+    protected function getRichContentField(): string
+    {
+        return 'bio';
+    }
+
     public function getProfilePhotoUrlAttribute(): string
     {
         return $this->getFirstMediaUrl('profile_photo');
