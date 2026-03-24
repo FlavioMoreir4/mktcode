@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Enums\InquiryStatus;
+use App\Application\Inquiry\Commands\MarkInquiryInProgress;
+use App\Application\Inquiry\Commands\ResolveInquiry;
+use App\Application\Inquiry\Queries\ListAdminInquiriesQuery;
+use App\Application\Inquiry\Support\InquiryStatusView;
+use App\Domain\Inquiry\Enums\InquiryStatus;
 use App\Filament\Resources\InquiryResource\Pages;
 use App\Models\Inquiry;
 use App\Support\WhatsApp;
@@ -109,9 +113,7 @@ class InquiryResource extends Resource
     {
         return $table
             ->defaultSort('created_at', 'desc')
-
-            ->modifyQueryUsing(fn (Builder $query) => $query->orderByRaw("CASE WHEN status = 'new' THEN 0 ELSE 1 END")
-            )
+            ->modifyQueryUsing(fn (Builder $query, ListAdminInquiriesQuery $listAdminInquiriesQuery): Builder => $listAdminInquiriesQuery->apply($query))
 
             ->columns([
 
@@ -136,7 +138,8 @@ class InquiryResource extends Resource
 
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (InquiryStatus $state): string => $state->getColor()),
+                    ->formatStateUsing(fn (Inquiry $record): string => InquiryStatusView::from($record->status)->label)
+                    ->color(fn (Inquiry $record): string => InquiryStatusView::from($record->status)->color),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Recebido')
@@ -144,9 +147,7 @@ class InquiryResource extends Resource
                     ->sortable(),
             ])
 
-            ->recordClasses(fn (Inquiry $record) => $record->status === InquiryStatus::New
-                    ? 'bg-gray-50 dark:bg-gray-800/40'
-                    : null
+            ->recordClasses(fn (Inquiry $record) => InquiryStatusView::from($record->status)->rowClass
             )
 
             ->filters([
@@ -162,14 +163,14 @@ class InquiryResource extends Resource
                         ->icon('heroicon-o-play')
                         ->color('warning')
                         ->visible(fn (Inquiry $record) => $record->status === InquiryStatus::New)
-                        ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::InProgress])),
+                        ->action(fn (MarkInquiryInProgress $command, Inquiry $record) => $command->handle($record)),
 
                     Action::make('resolver')
                         ->label('Resolver')
                         ->icon('heroicon-o-check')
                         ->color('success')
                         ->visible(fn (Inquiry $record) => $record->status !== InquiryStatus::Resolved)
-                        ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::Resolved])),
+                        ->action(fn (ResolveInquiry $command, Inquiry $record) => $command->handle($record)),
 
                     ViewAction::make(),
                     EditAction::make(),
@@ -194,7 +195,7 @@ class InquiryResource extends Resource
                     BulkAction::make('marcar_como_resolvido')
                         ->label('Marcar como resolvido')
                         ->icon('heroicon-o-check')
-                        ->action(fn ($records) => $records->each->update(['status' => InquiryStatus::Resolved])),
+                        ->action(fn (ResolveInquiry $command, $records) => $records->each(fn (Inquiry $record) => $command->handle($record))),
 
                     DeleteBulkAction::make(),
                 ]),

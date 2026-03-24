@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Responses;
 
+use App\Application\Identity\Services\AdminAccessDecider;
 use App\Models\User;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
@@ -13,11 +14,13 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
  */
 class LoginResponse implements LoginResponseContract
 {
+    public function __construct(private readonly AdminAccessDecider $adminAccess) {}
+
     public function toResponse($request): mixed
     {
         $user = $request->user();
 
-        if ($user instanceof User && $user->canAccessAdminPanel()) {
+        if ($user instanceof User && $this->adminAccess->canAccessAdminPanel($user)) {
             return redirect()->intended('/admin');
         }
 

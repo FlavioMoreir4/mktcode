@@ -4,38 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Public;
 
-use App\SEO\Contracts\HasSeo;
-use App\SEO\SeoResolver;
-use Illuminate\Http\Request;
+use App\Application\Shared\Contracts\PublicPayloadData;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/**
- * @mixin \App\Models\Project
- * @mixin \App\Models\Post
- * @mixin \App\Models\User
- *
- * @property-read \App\Models\User $author
- */
 abstract class PublicResource extends JsonResource
 {
-    public function with(Request $request): array
+    /**
+     * @return array<string, mixed>
+     */
+    protected function payload(): array
     {
-        return [
-            'seo' => $this->seo(),
-        ];
-    }
+        /** @var PublicPayloadData|array<string, mixed> $resource */
+        $resource = $this->resource;
 
-    protected function cover(string $collection = 'cover'): ?string
-    {
-        return $this->getFirstMediaUrl($collection) ?: null;
-    }
-
-    protected function seo(): ?array
-    {
-        if ($this->resource instanceof HasSeo) {
-            return app(SeoResolver::class)->resolve($this->resource)->toArray();
+        if (is_array($resource)) {
+            return $resource;
         }
 
-        return null;
+        return $resource->toArray();
     }
 }

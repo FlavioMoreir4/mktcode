@@ -4,25 +4,20 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\PostStatus;
+use App\Domain\Content\Enums\PostStatus;
 use App\Filament\Resources\Concerns\HasRichEditorRendering;
-use App\SEO\Contracts\HasSeo;
-use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\Sitemap\Contracts\Sitemapable;
-use Spatie\Sitemap\Tags\Url;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 use Spatie\Tags\HasTags;
 use Spatie\Tags\Tag;
 
-class Post extends Model implements HasMedia, HasSeo, Sitemapable
+class Post extends Model implements HasMedia
 {
     use HasRichEditorRendering;
     use HasSlug, HasTags, InteractsWithMedia, SoftDeletes;
@@ -51,49 +46,9 @@ class Post extends Model implements HasMedia, HasSeo, Sitemapable
         ];
     }
 
-    public function getSeo(): \App\SEO\DTO\SeoData
-    {
-        return app(\App\SEO\SeoResolver::class)->resolve($this);
-    }
-
     protected function getEditorContent(): string|array|null
     {
         return $this->body;
-    }
-
-    public function toSitemapTag(): Url|string|array
-    {
-        $url = Url::create(route('public.blog.show', $this->slug))
-            ->setLastModificationDate($this->updated_at)
-            ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-            ->setPriority(0.8);
-
-        $cover = $this->getFirstMedia('cover');
-        if ($cover) {
-            $url->addImage($cover->getUrl(), $this->seo_title ?? $this->title);
-        }
-
-        return $url;
-    }
-
-    public function scopePublic(Builder $query): Builder
-    {
-        return $query
-            ->where('status', PostStatus::Published)
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', CarbonImmutable::now()->format('Y-m-d H:i:s'));
-    }
-
-    public function scopePublished(Builder $query): Builder
-    {
-        return $query->public();
-    }
-
-    public function isPubliclyVisible(): bool
-    {
-        return $this->status === PostStatus::Published
-            && $this->published_at !== null
-            && $this->published_at->isPast();
     }
 
     public function getSlugOptions(): SlugOptions

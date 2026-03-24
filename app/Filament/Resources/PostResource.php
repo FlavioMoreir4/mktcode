@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Enums\PostStatus;
+use App\Application\Content\Queries\ListAdminPostsQuery;
+use App\Domain\Content\Enums\PostStatus;
 use App\Filament\Resources\Concerns\HasDynamicRichEditor;
 use App\Filament\Resources\PostResource\Pages;
 use App\Models\Post;
@@ -27,6 +28,7 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
@@ -43,6 +45,15 @@ class PostResource extends Resource
     protected static ?string $pluralModelLabel = 'Posts';
 
     protected static ?string $navigationLabel = 'Blog';
+
+    public static function resolveDisplayStatus(Post $post): PostStatus
+    {
+        if ($post->published_at?->isFuture()) {
+            return PostStatus::Scheduled;
+        }
+
+        return $post->status;
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -157,6 +168,7 @@ class PostResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query, ListAdminPostsQuery $listAdminPostsQuery): Builder => $listAdminPostsQuery->apply($query))
             ->columns([
 
                 SpatieMediaLibraryImageColumn::make('cover')
@@ -171,9 +183,9 @@ class PostResource extends Resource
                         ->searchable()
                         ->weight(FontWeight::Bold)
                         ->size(TextSize::Large)
-                        ->icon(fn ($record) => match (true) {
-                            $record->status === 'draft' => 'heroicon-o-pencil',
-                            $record->published_at && $record->published_at->isFuture() => 'heroicon-o-clock',
+                        ->icon(fn (Post $record) => match (self::resolveDisplayStatus($record)) {
+                            PostStatus::Draft => 'heroicon-o-pencil',
+                            PostStatus::Scheduled => 'heroicon-o-clock',
                             default => 'heroicon-o-check-circle',
                         })
                         ->iconPosition(IconPosition::After),
@@ -192,14 +204,8 @@ class PostResource extends Resource
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->formatStateUsing(fn ($record) => match (true) {
-                        $record->published_at && $record->published_at->isFuture() => PostStatus::Scheduled->getLabel(),
-                        default => $record->status->getLabel(),
-                    })
-                    ->color(fn ($record) => match (true) {
-                        $record->published_at && $record->published_at->isFuture() => PostStatus::Scheduled->getColor(),
-                        default => $record->status->getColor(),
-                    }),
+                    ->formatStateUsing(fn (Post $record): string => self::resolveDisplayStatus($record)->getLabel())
+                    ->color(fn (Post $record): string|array => self::resolveDisplayStatus($record)->getColor() ?? 'gray'),
 
                 TextColumn::make('published_at')
                     ->label('Publicação')

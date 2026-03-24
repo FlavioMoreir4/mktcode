@@ -10,22 +10,22 @@ use App\Http\Controllers\Public\PostController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ServiceController;
 use App\Http\Controllers\Public\UserController as PublicUserController;
-use App\SEO\Services\RobotsGenerator;
-use App\SEO\Services\SitemapGenerator;
+use App\Infrastructure\Shared\SEO\RobotsGenerator;
+use App\Infrastructure\Shared\Sitemap\SitemapGenerator;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 
-Route::get('/sitemap.xml', function () {
-    app(SitemapGenerator::class)->generate();
+Route::get('/sitemap.xml', function (SitemapGenerator $generator) {
+    $generator->generate();
 
     return response()->file(public_path('sitemap.xml'), [
         'Content-Type' => 'application/xml',
     ]);
 })->name('sitemap');
 
-Route::get('/robots.txt', function () {
+Route::get('/robots.txt', function (RobotsGenerator $robotsGenerator) {
     return response(
-        app(RobotsGenerator::class)->generate(),
+        $robotsGenerator->generate(),
         200,
         ['Content-Type' => 'text/plain']
     );

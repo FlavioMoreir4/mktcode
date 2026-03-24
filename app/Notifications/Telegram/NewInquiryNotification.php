@@ -36,9 +36,8 @@ class NewInquiryNotification extends TelegramBaseNotification
 
         $message->content($content);
 
-        // FIXME: Criar helper para montar link do WhatsApp
         if ($this->inquiry->whatsapp) {
-            $message->button('Abrir no WhatsApp', "https://wa.me/{$this->inquiry->whatsapp}");
+            $message->button('Abrir no WhatsApp', $this->whatsAppLink());
         }
 
         if (app()->isProduction()) {
@@ -46,5 +45,10 @@ class NewInquiryNotification extends TelegramBaseNotification
         }
 
         return $message;
+    }
+
+    private function whatsAppLink(): string
+    {
+        return 'https://wa.me/'.$this->inquiry->whatsapp;
     }
 }

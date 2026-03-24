@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\SEO\Services\SitemapGenerator;
+use App\Infrastructure\Shared\Sitemap\SitemapGenerator;
 use Illuminate\Console\Command;
 
 class GenerateSitemap extends Command

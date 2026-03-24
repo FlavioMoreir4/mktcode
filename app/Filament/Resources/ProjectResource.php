@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Enums\ProjectStatus;
+use App\Application\Portfolio\Queries\ListAdminProjectsQuery;
+use App\Domain\Portfolio\Enums\ProjectStatus;
 use App\Filament\Resources\ProjectResource\Pages;
 use App\Models\Project;
 use BackedEnum;
@@ -22,6 +23,7 @@ use Filament\Support\Enums\TextSize;
 use Filament\Tables;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 
@@ -162,13 +164,13 @@ class ProjectResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query, ListAdminProjectsQuery $listAdminProjectsQuery): Builder => $listAdminProjectsQuery->apply($query))
             ->columns([
                 Stack::make([
                     Tables\Columns\TextColumn::make('title')
                         ->searchable()
                         ->size(TextSize::Large)
                         ->weight(FontWeight::Bold)
-                        // Ícone só aparece se for destaque
                         ->icon(fn (Project $record) => $record->featured ? 'heroicon-o-star' : null)
                         ->iconColor(fn (Project $record) => $record->featured ? 'warning' : null)
                         ->iconPosition(IconPosition::After),

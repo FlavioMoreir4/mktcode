@@ -4,38 +4,45 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Application\Inquiries\Queries\InquiryMetricsQuery;
+use App\Application\Inquiry\Queries\GetInquiryMetricsQuery;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class InquiryStats extends StatsOverviewWidget
 {
+    private GetInquiryMetricsQuery $metricsQuery;
+
+    public function boot(GetInquiryMetricsQuery $metricsQuery): void
+    {
+        $this->metricsQuery = $metricsQuery;
+    }
+
     protected function getStats(): array
     {
-        $metrics = app(InquiryMetricsQuery::class)->summary();
+        $metrics = $this->metricsQuery->summary();
 
         return [
-            Stat::make('Novas', $metrics['pending'])
-                ->description($metrics['today'].' hoje')
+            Stat::make('Novas', $metrics->pending)
+                ->description($metrics->today.' hoje')
                 ->color('warning'),
 
-            Stat::make('Em atendimento', $metrics['in_progress'])
+            Stat::make('Em atendimento', $metrics->inProgress)
                 ->color('info'),
 
-            Stat::make('Resolvidas', $metrics['resolved'])
-                ->description("Taxa: {$metrics['resolution_rate']}%")
+            Stat::make('Resolvidas', $metrics->resolved)
+                ->description("Taxa: {$metrics->resolutionRate}%")
                 ->color('success'),
 
-            Stat::make('Atrasadas', $metrics['late'])
+            Stat::make('Atrasadas', $metrics->late)
                 ->description('> 24h sem resposta')
                 ->color('danger'),
 
-            Stat::make('Tempo médio', "{$metrics['average_response_time_hours']}h")
+            Stat::make('Tempo médio', "{$metrics->averageResponseTimeHours}h")
                 ->color('primary'),
 
-            Stat::make('SLA 24h', "{$metrics['sla_rate']}%")
+            Stat::make('SLA 24h', "{$metrics->slaRate}%")
                 ->description('Resolvidas em até 24h')
-                ->color($metrics['sla_rate'] >= 80 ? 'success' : 'danger'),
+                ->color($metrics->slaRate >= 80 ? 'success' : 'danger'),
         ];
     }
 }

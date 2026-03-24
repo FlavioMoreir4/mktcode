@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Filament\Resources\Concerns\HasRichEditorRendering;
-use App\SEO\Contracts\HasSeo;
-use App\SEO\SeoResolver;
+use App\Infrastructure\Identity\Filament\PanelAccessBridge;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
 use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
@@ -16,7 +15,6 @@ use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -25,10 +23,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Sitemap\Contracts\Sitemapable;
-use Spatie\Sitemap\Tags\Url;
 
-class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, HasSeo, MustVerifyEmail, Sitemapable
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -77,13 +73,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $panel->getId() !== 'admin' || $this->canAccessAdminPanel();
-    }
-
-    public function canAccessAdminPanel(): bool
-    {
-        return $this->hasAnyRole(['super_admin', 'admin', 'editor', 'author'])
-            || $this->getAllPermissions()->isNotEmpty();
+        return $panel->getId() !== 'admin'
+            || PanelAccessBridge::canAccessAdminPanel($this);
     }
 
     /**
@@ -101,21 +92,9 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         ];
     }
 
-    public function getSeo(): \App\SEO\DTO\SeoData
-    {
-        return app(SeoResolver::class)->resolve($this);
-    }
-
     protected function getEditorContent(): string|array|null
     {
         return $this->bio;
-    }
-
-    public function scopePublic(Builder $query): Builder
-    {
-        return $query
-            ->whereNotNull('username')
-            ->where('username', '!=', '');
     }
 
     public function getProfilePhotoUrlAttribute(): string
@@ -126,21 +105,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function getCoverPhotoUrlAttribute(): string
     {
         return $this->getFirstMediaUrl('cover_photo');
-    }
-
-    public function toSitemapTag(): Url|string|array
-    {
-        $url = Url::create(route('public.user.show', $this->username))
-            ->setLastModificationDate($this->updated_at)
-            ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
-            ->setPriority(0.6);
-
-        $cover = $this->getFirstMedia('profile_photo');
-        if ($cover) {
-            $url->addImage($cover->getUrl(), $this->title ?? $this->name);
-        }
-
-        return $url;
     }
 
     public function registerMediaCollections(): void

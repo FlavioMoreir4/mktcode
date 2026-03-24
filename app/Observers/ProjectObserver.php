@@ -4,25 +4,26 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Console\Commands\GenerateSitemap;
-use App\Enums\ProjectStatus;
+use App\Domain\Portfolio\Enums\ProjectStatus;
+use App\Infrastructure\Shared\Sitemap\QueueSitemapGeneration;
 use App\Models\Project;
-use Illuminate\Support\Facades\Artisan;
 
 /**
  * Regenerates public search metadata whenever a public project changes.
  */
 class ProjectObserver
 {
+    public function __construct(private readonly QueueSitemapGeneration $queueSitemapGeneration) {}
+
     public function saved(Project $project): void
     {
         if ($project->status === ProjectStatus::Published) {
-            Artisan::queue(GenerateSitemap::SIGNATURE);
+            $this->queueSitemapGeneration->dispatch();
         }
     }
 
     public function deleted(Project $project): void
     {
-        Artisan::queue(GenerateSitemap::SIGNATURE);
+        $this->queueSitemapGeneration->dispatch();
     }
 }

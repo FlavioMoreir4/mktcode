@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Enums\PostStatus;
-use App\Enums\ProjectStatus;
+use App\Domain\Content\Enums\PostStatus;
+use App\Domain\Portfolio\Enums\ProjectStatus;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Project;
@@ -106,4 +106,49 @@ test('public profile only exposes published posts', function () {
             ->component('public/user/Show')
             ->has('user.posts.data', 1)
             ->where('user.posts.data.0.slug', $publishedPost->slug));
+});
+
+test('public post payload keeps summary and detail metadata consistent', function () {
+    $author = User::factory()->create(['username' => 'consistency-writer']);
+    $category = Category::query()->create(['name' => 'Consistency']);
+
+    Post::query()->create([
+        'title' => 'Consistent post',
+        'slug' => 'consistent-post',
+        'body' => richEditorDocument('Consistent post body'),
+        'status' => PostStatus::Published,
+        'published_at' => now()->subMinute(),
+        'author_id' => $author->id,
+        'category_id' => $category->id,
+        'excerpt' => 'Consistent excerpt',
+    ]);
+
+    $index = $this->get(route('public.blog.index'))->assertSuccessful();
+    $show = $this->get(route('public.blog.show', 'consistent-post'))->assertSuccessful();
+
+    $index->assertInertia(fn (Assert $page) => $page
+        ->where('posts.data.0.slug', 'consistent-post')
+        ->where('posts.data.0.excerpt', 'Consistent excerpt')
+        ->has('posts.data.0.author')
+        ->where('posts.data.0.author.name', $author->name)
+        ->where('posts.data.0.author.username', $author->username)
+        ->where('posts.data.0.author.title', $author->title)
+        ->where('posts.data.0.author.profile_url', route('public.user.show', $author->username))
+        ->has('posts.data.0.category')
+        ->where('posts.data.0.category.slug', $category->slug)
+        ->has('posts.data.0.tags'));
+
+    $show->assertInertia(fn (Assert $page) => $page
+        ->where('post.slug', 'consistent-post')
+        ->where('post.excerpt', 'Consistent excerpt')
+        ->has('post.author')
+        ->where('post.author.name', $author->name)
+        ->where('post.author.username', $author->username)
+        ->where('post.author.profile_url', route('public.user.show', $author->username))
+        ->has('post.category')
+        ->where('post.category.slug', $category->slug)
+        ->has('post.tags')
+        ->has('post.word_count')
+        ->has('post.reading_time')
+        ->has('post.plain_text'));
 });

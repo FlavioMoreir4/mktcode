@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Console\Commands\GenerateSitemap;
+use App\Infrastructure\Shared\Sitemap\QueueSitemapGeneration;
 use App\Models\User;
-use Illuminate\Support\Facades\Artisan;
 
 /**
  * Regenerates the public user sitemap when profile-facing attributes change.
@@ -17,6 +16,8 @@ class UserObserver
         'username', 'name', 'title', 'bio', 'location',
     ];
 
+    public function __construct(private readonly QueueSitemapGeneration $queueSitemapGeneration) {}
+
     public function saved(User $user): void
     {
         $changed = array_intersect(
@@ -25,12 +26,12 @@ class UserObserver
         );
 
         if (! empty($changed)) {
-            Artisan::queue(GenerateSitemap::SIGNATURE);
+            $this->queueSitemapGeneration->dispatch();
         }
     }
 
     public function deleted(User $user): void
     {
-        Artisan::queue(GenerateSitemap::SIGNATURE);
+        $this->queueSitemapGeneration->dispatch();
     }
 }

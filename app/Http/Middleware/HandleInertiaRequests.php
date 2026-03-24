@@ -19,6 +19,8 @@ class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
+    public function __construct(private readonly GeneralSettings $settings) {}
+
     /**
      * Determines the current asset version.
      *
@@ -38,28 +40,19 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        /** @var GeneralSettings $settings */
-        $settings = app(GeneralSettings::class);
-
         return [
             ...parent::share($request),
-
-            /**
-             * Dados globais do site — fonte de verdade: GeneralSettings (banco de dados).
-             * O frontend consome via `usePage().props.site`.
-             */
             'site' => [
-                'name' => $settings->site_name,
+                'name' => $this->settings->site_name,
                 'url' => route('home'),
-                'description' => $settings->site_description,
-                'og_image' => $settings->ogImageUrl(),
-                'keywords' => $settings->parsedKeywords(),
-                'author' => $settings->site_author,
-                'locale' => $settings->site_locale,
-                'social_links' => $settings->activeSocialLinks(),
+                'description' => $this->settings->site_description,
+                'og_image' => $this->settings->ogImageUrl(),
+                'keywords' => $this->settings->parsedKeywords(),
+                'author' => $this->settings->site_author,
+                'locale' => $this->settings->site_locale,
+                'social_links' => $this->settings->activeSocialLinks(),
             ],
-
-            'name' => $settings->site_name,
+            'name' => $this->settings->site_name,
             'auth' => [
                 'user' => $request->user(),
             ],

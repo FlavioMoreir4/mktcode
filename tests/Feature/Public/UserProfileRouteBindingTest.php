@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Inertia\Testing\AssertableInertia as Assert;
 
 it('resolves public user profile route by username', function (): void {
     $user = User::factory()->create([
@@ -14,8 +15,12 @@ it('resolves public user profile route by username', function (): void {
 
     $response->assertOk();
     $response->assertInertia(
-        fn ($page) => $page
+        fn (Assert $page) => $page
             ->component('public/user/Show')
             ->where('user.username', $user->username)
+            ->where('user.name', $user->name)
+            ->where('user.title', $user->title)
+            ->has('user.projects.data')
+            ->has('user.posts.data')
     );
 });

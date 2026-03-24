@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Application\Inquiries\Queries\InquiryActivityChartQuery;
+use App\Application\Inquiry\Queries\GetInquiryActivityChartQuery;
 use Filament\Widgets\ChartWidget;
 
 class ActivityChart extends ChartWidget
@@ -13,9 +13,16 @@ class ActivityChart extends ChartWidget
 
     protected ?string $maxHeight = '250px';
 
+    private GetInquiryActivityChartQuery $chartQuery;
+
+    public function boot(GetInquiryActivityChartQuery $chartQuery): void
+    {
+        $this->chartQuery = $chartQuery;
+    }
+
     protected function getData(): array
     {
-        $chartData = app(InquiryActivityChartQuery::class)->forDays(7);
+        $chartData = $this->chartQuery->forDays(7);
 
         return [
             'datasets' => [

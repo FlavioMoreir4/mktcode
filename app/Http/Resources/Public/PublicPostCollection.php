@@ -21,16 +21,4 @@ class PublicPostCollection extends ResourceCollection
             'data' => PublicPostResource::collection($this->collection),
         ];
     }
-
-    // public function with(Request $request): array
-    // {
-    //     $seo = app(PageSeoBuilder::class)->build(
-    //         route: 'public.blog.index',
-    //         title: 'Blog - '.config('app.name'),
-    //     );
-
-    //     return [
-    //         'seo' => $seo,
-    //     ];
-    // }
 }

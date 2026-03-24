@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Console\Commands\GenerateSitemap;
-use App\Enums\PostStatus;
-use App\Enums\ProjectStatus;
+use App\Domain\Content\Enums\PostStatus;
+use App\Domain\Portfolio\Enums\ProjectStatus;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Project;

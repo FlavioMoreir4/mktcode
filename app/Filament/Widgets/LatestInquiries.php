@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Enums\InquiryStatus;
+use App\Application\Inquiry\Commands\MarkInquiryInProgress;
+use App\Application\Inquiry\Commands\ResolveInquiry;
+use App\Application\Inquiry\Queries\ListAdminInquiriesQuery;
+use App\Application\Inquiry\Support\InquiryStatusView;
+use App\Domain\Inquiry\Enums\InquiryStatus;
 use App\Models\Inquiry;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
@@ -22,6 +26,22 @@ class LatestInquiries extends TableWidget
 
     protected static ?int $sort = 1;
 
+    private MarkInquiryInProgress $markInquiryInProgress;
+
+    private ListAdminInquiriesQuery $listAdminInquiriesQuery;
+
+    private ResolveInquiry $resolveInquiry;
+
+    public function boot(
+        MarkInquiryInProgress $markInquiryInProgress,
+        ResolveInquiry $resolveInquiry,
+        ListAdminInquiriesQuery $listAdminInquiriesQuery,
+    ): void {
+        $this->markInquiryInProgress = $markInquiryInProgress;
+        $this->resolveInquiry = $resolveInquiry;
+        $this->listAdminInquiriesQuery = $listAdminInquiriesQuery;
+    }
+
     protected function getTablePollingInterval(): ?string
     {
         return '10s';
@@ -30,7 +50,7 @@ class LatestInquiries extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => Inquiry::prioritizeNew()
+            ->query(fn (): Builder => $this->listAdminInquiriesQuery->apply(Inquiry::query())
                 ->latest()
                 ->limit(5)
             )
@@ -49,17 +69,15 @@ class LatestInquiries extends TableWidget
 
                 TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn (Inquiry $record): string => $record->getStatusLabel())
-                    ->color(fn (Inquiry $record): string => $record->getStatusColor()),
+                    ->formatStateUsing(fn (Inquiry $record): string => InquiryStatusView::from($record->status)->label)
+                    ->color(fn (Inquiry $record): string => InquiryStatusView::from($record->status)->color),
 
                 TextColumn::make('created_at')
                     ->label('Recebido')
                     ->since(),
             ])
 
-            ->recordClasses(fn (Inquiry $record) => $record->status === InquiryStatus::New
-                    ? 'bg-gray-50 dark:bg-gray-800/40'
-                    : null
+            ->recordClasses(fn (Inquiry $record) => InquiryStatusView::from($record->status)->rowClass
             )
 
             ->recordUrl(fn (Inquiry $record): string => route('filament.admin.resources.inquiries.view', $record)
@@ -71,15 +89,13 @@ class LatestInquiries extends TableWidget
                     ->icon('heroicon-o-play')
                     ->color('warning')
                     ->visible(fn (Inquiry $record) => $record->status === InquiryStatus::New)
-                    ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::InProgress])
-                    ),
+                    ->action(fn (Inquiry $record) => $this->markInquiryInProgress->handle($record)),
 
                 Action::make('resolver')
                     ->icon('heroicon-o-check')
                     ->color('success')
                     ->visible(fn (Inquiry $record) => $record->status !== InquiryStatus::Resolved)
-                    ->action(fn (Inquiry $record) => $record->update(['status' => InquiryStatus::Resolved])
-                    ),
+                    ->action(fn (Inquiry $record) => $this->resolveInquiry->handle($record)),
 
                 ViewAction::make()
                     ->schema([
@@ -88,8 +104,8 @@ class LatestInquiries extends TableWidget
                                 TextEntry::make('name')->label('Nome'),
                                 TextEntry::make('status')
                                     ->badge()
-                                    ->formatStateUsing(fn (Inquiry $record): string => $record->getStatusLabel())
-                                    ->color(fn (Inquiry $record): string => $record->getStatusColor()),
+                                    ->formatStateUsing(fn (Inquiry $record): string => InquiryStatusView::from($record->status)->label)
+                                    ->color(fn (Inquiry $record): string => InquiryStatusView::from($record->status)->color),
                             ]),
                             Group::make([
                                 TextEntry::make('email')->label('Email'),

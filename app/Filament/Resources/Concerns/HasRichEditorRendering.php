@@ -13,38 +13,24 @@ use Phiki\Theme\Theme;
 
 trait HasRichEditorRendering
 {
-    /**
-     * Cada model deve implementar esse método para indicar
-     * qual atributo contém o conteúdo do editor.
-     */
     abstract protected function getEditorContent(): string|array|null;
 
-    /**
-     * Detectar se o conteúdo é JSON do RichEditor
-     */
     protected function isRichEditorContent(): bool
     {
         return is_array($this->getEditorContent());
     }
 
-    /**
-     * Detectar se é Markdown puro
-     */
     protected function isMarkdownContent(): bool
     {
         return is_string($this->getEditorContent()) && Str::contains($this->getEditorContent(), ['#', '**', '-', '*', '```']);
     }
 
-    /**
-     * Render HTML final (principal)
-     */
     public function getHtmlAttribute(): string
     {
-
         if (! $this->getEditorContent()) {
             return '';
         }
-        // Conteúdo vindo do RichEditor (JSON)
+
         if ($this->isRichEditorContent()) {
             return RichContentRenderer::make($this->getEditorContent())
                 ->customBlocks([
@@ -57,7 +43,6 @@ trait HasRichEditorRendering
                 ->toHtml();
         }
 
-        // Conteúdo vindo de Markdown puro
         if ($this->isMarkdownContent()) {
             $converter = new CommonMarkConverter;
 
@@ -67,9 +52,6 @@ trait HasRichEditorRendering
         return (string) $this->getEditorContent();
     }
 
-    /**
-     * Retornar como Markdown (mesmo se vier do RichEditor)
-     */
     public function getMarkdownAttribute(): string
     {
         if (! $this->getEditorContent()) {
@@ -83,9 +65,6 @@ trait HasRichEditorRendering
         return (string) $this->getEditorContent();
     }
 
-    /**
-     * Conteúdo limpo para SEO (sem HTML pesado)
-     */
     public function getPlainTextAttribute(): string
     {
         return Str::of($this->html)
@@ -95,17 +74,6 @@ trait HasRichEditorRendering
             ->toString();
     }
 
-    /**
-     * Excerpt automático
-     */
-    // public function getExcerptAttribute(): string
-    // {
-    //     return Str::limit($this->plain_text, 160);
-    // }
-
-    /**
-     * Table of Contents HTML
-     */
     public function getTocAttribute(): string
     {
         if (! $this->isRichEditorContent()) {
@@ -115,9 +83,6 @@ trait HasRichEditorRendering
         return TableOfContents::make($this->getEditorContent())->asHtml();
     }
 
-    /**
-     * Table of Contents como array (bom para Vue/Livewire)
-     */
     public function getTocArrayAttribute(): array
     {
         if (! $this->isRichEditorContent()) {
@@ -127,17 +92,11 @@ trait HasRichEditorRendering
         return TableOfContents::make($this->getEditorContent())->asArray();
     }
 
-    /**
-     * Contagem de palavras (útil para blog)
-     */
     public function getWordCountAttribute(): int
     {
         return str_word_count($this->plain_text);
     }
 
-    /**
-     * Tempo estimado de leitura
-     */
     public function getReadingTimeAttribute(): int
     {
         return max(1, (int) ceil($this->word_count / 200));

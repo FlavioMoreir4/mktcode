@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Infrastructure\Shared\SEO\SeoService;
 use App\Models\Service;
-use App\SEO\Services\SeoService;
 use Inertia\Inertia;
 use Inertia\Response;
 

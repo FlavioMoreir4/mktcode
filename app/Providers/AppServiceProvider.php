@@ -4,8 +4,17 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Content\Contracts\PostRepository;
+use App\Domain\Identity\Contracts\UserRepository;
+use App\Domain\Inquiry\Contracts\InquiryRepository;
+use App\Domain\Portfolio\Contracts\ProjectRepository;
 use App\Events\Inquiries\InquirySubmitted;
-use App\Listeners\Inquiries\SendInquirySubmittedNotification;
+use App\Infrastructure\Content\Persistence\Eloquent\EloquentPostRepository;
+use App\Infrastructure\Identity\Filament\PanelAccessBridge;
+use App\Infrastructure\Identity\Persistence\Eloquent\EloquentUserRepository;
+use App\Infrastructure\Inquiry\Listeners\SendInquirySubmittedNotification;
+use App\Infrastructure\Inquiry\Persistence\Eloquent\EloquentInquiryRepository;
+use App\Infrastructure\Portfolio\Persistence\Eloquent\EloquentProjectRepository;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\User;
@@ -33,6 +42,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TelegramNotifier::class, function () {
             return new TelegramNotifier(TelegramBotTarget::default());
         });
+
+        $this->app->bind(InquiryRepository::class, EloquentInquiryRepository::class);
+        $this->app->bind(PostRepository::class, EloquentPostRepository::class);
+        $this->app->bind(ProjectRepository::class, EloquentProjectRepository::class);
+        $this->app->bind(UserRepository::class, EloquentUserRepository::class);
     }
 
     /**
@@ -50,6 +64,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('super_admin') ? true : null;
         });
+
+        PanelAccessBridge::bootstrap($this->app->make(\App\Application\Identity\Services\AdminAccessDecider::class));
 
         Event::listen(InquirySubmitted::class, SendInquirySubmittedNotification::class);
 

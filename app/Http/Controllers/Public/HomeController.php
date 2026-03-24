@@ -4,24 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Application\Portfolio\DTOs\PublicProjectViewData;
+use App\Application\Portfolio\Queries\ListFeaturedHomeProjectsQuery;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\PublicProjectResource;
-use App\Models\Project;
+use App\Infrastructure\Shared\SEO\SeoService;
 use App\Models\Service;
-use App\SEO\Services\SeoService;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Features;
 
 class HomeController extends Controller
 {
-    public function __invoke(SeoService $seo): Response
+    public function __invoke(ListFeaturedHomeProjectsQuery $listFeaturedHomeProjects, SeoService $seo): Response
     {
+        $projects = $listFeaturedHomeProjects
+            ->take(3)
+            ->map(fn ($project) => PublicProjectViewData::fromModel($project));
+
         return Inertia::render('Welcome', [
             'canRegister' => Features::enabled(Features::registration()),
-            'projects' => PublicProjectResource::collection(
-                Project::published()->with(['author.media', 'media'])->latest()->take(3)->get()
-            )->resolve(),
+            'projects' => PublicProjectResource::collection($projects)->resolve(),
             'services' => Service::active()->get(),
             'seo' => $seo->forPage(
                 route: 'home',
