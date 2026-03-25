@@ -89,7 +89,7 @@ class Settings extends SettingsPage
                             ->image()
                             ->maxSize(5120)
                             ->directory('settings/og')
-                            ->visibility('public')
+                            ->disk('public')
                             ->helperText('Recomendado: 1200x630px, formato PNG ou JPG'),
                     ]),
 
