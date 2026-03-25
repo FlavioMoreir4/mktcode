@@ -29,11 +29,11 @@ class ProjectMediaBuilder implements PublicMediaBuilder
         $cover = $resource->getFirstMedia('cover');
 
         $gallery = $resource->getMedia('screenshots')
-            ->map(fn ($media) => ['url' => $media->getUrl()])
+            ->map(fn ($media) => ['url' => $media->hasGeneratedConversion('webp') ? $media->getUrl('webp') : $media->getUrl()])
             ->all();
 
         return new PublicMediaData(
-            cover: $cover ? ['url' => $cover->getUrl()] : null,
+            cover: $cover ? ['url' => $cover->hasGeneratedConversion('webp') ? $cover->getUrl('webp') : $cover->getUrl()] : null,
             gallery: $gallery,
         );
     }

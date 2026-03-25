@@ -29,7 +29,7 @@ class PostMediaBuilder implements PublicMediaBuilder
         $cover = $resource->getFirstMedia('cover');
 
         return new PublicMediaData(
-            cover: $cover ? ['url' => $cover->getUrl()] : null,
+            cover: $cover ? ['url' => $cover->hasGeneratedConversion('webp') ? $cover->getUrl('webp') : $cover->getUrl()] : null,
         );
     }
 }

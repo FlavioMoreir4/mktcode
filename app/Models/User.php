@@ -22,6 +22,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasMedia, MustVerifyEmail
@@ -104,12 +105,16 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     public function getProfilePhotoUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('profile_photo');
+        $media = $this->getFirstMedia('profile_photo');
+
+        return $media ? ($media->hasGeneratedConversion('webp') ? $media->getUrl('webp') : $media->getUrl()) : '';
     }
 
     public function getCoverPhotoUrlAttribute(): string
     {
-        return $this->getFirstMediaUrl('cover_photo');
+        $media = $this->getFirstMedia('cover_photo');
+
+        return $media ? ($media->hasGeneratedConversion('webp') ? $media->getUrl('webp') : $media->getUrl()) : '';
     }
 
     public function registerMediaCollections(): void
@@ -121,6 +126,13 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         $this->addMediaCollection('cover_photo')
             ->useDisk('public')
             ->singleFile();
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('webp')
+            ->format('webp')
+            ->nonQueued();
     }
 
     public function posts(): HasMany
