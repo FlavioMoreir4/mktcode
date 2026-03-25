@@ -24,8 +24,6 @@ interface Props {
 
 defineProps<Props>();
 
-
-
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
 const lightboxSrc = ref<string | null>(null);
 const openLightbox = (src: string) => {
@@ -159,8 +157,6 @@ onUnmounted(() => {
                 <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
                     <!-- Left: title + meta strip (mobile) -->
                     <div class="space-y-8 lg:col-span-7">
-
-
                         <!-- Meta strip — mobile/tablet only -->
                         <div
                             class="grid grid-cols-2 gap-5 rounded-2xl border border-border bg-muted/30 p-5 sm:grid-cols-4 lg:hidden"
@@ -204,6 +200,23 @@ onUnmounted(() => {
                                     <ExternalLink class="h-3.5 w-3.5" />
                                 </a>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Left: title + meta strip (mobile) -->
+                    <div class="space-y-8 lg:col-span-7">
+                        <div class="space-y-4">
+                            <h1
+                                class="text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl"
+                            >
+                                {{ project.title }}
+                            </h1>
+                            <p
+                                v-if="project.description"
+                                class="text-xl leading-relaxed text-muted-foreground"
+                            >
+                                {{ project.description }}
+                            </p>
                         </div>
                     </div>
 
