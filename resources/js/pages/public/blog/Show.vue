@@ -4,6 +4,7 @@ import hljs from 'highlight.js';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
     HoverCard,
     HoverCardContent,
@@ -20,12 +21,32 @@ const props = defineProps<{
     seo?: SeoData;
 }>();
 
-// Reading progress
+// ─── Reading progress ───────────────────────────────────────────────────────
 const readingProgress = ref(0);
 const articleRef = ref<HTMLElement | null>(null);
 const copied = ref(false);
 
-// Tag name helper
+// ─── TOC ────────────────────────────────────────────────────────────────────
+interface TocItem {
+    id: string;
+    text: string;
+    level: number;
+}
+const tocItems = ref<TocItem[]>([]);
+const activeTocId = ref('');
+const showAllTags = ref(false);
+
+const TAGS_VISIBLE = 5;
+const visibleTags = computed(() =>
+    showAllTags.value
+        ? (props.post.tags ?? [])
+        : (props.post.tags ?? []).slice(0, TAGS_VISIBLE),
+);
+const hiddenTagCount = computed(() =>
+    Math.max(0, (props.post.tags?.length ?? 0) - TAGS_VISIBLE),
+);
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 const getTagName = (tag: any): string => {
     if (typeof tag.name === 'string') {
         return tag.name;
@@ -34,6 +55,25 @@ const getTagName = (tag: any): string => {
     return tag.name?.en ?? tag.name?.pt ?? Object.values(tag.name)[0] ?? '';
 };
 
+const slugify = (text: string) =>
+    text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-');
+
+const minutesRemaining = computed(() => {
+    const remaining =
+        props.post.reading_time * (1 - readingProgress.value / 100);
+
+    return Math.max(1, Math.ceil(remaining));
+});
+
+const wordCountFormatted = computed(
+    () => props.post.word_count?.toLocaleString('pt-BR') ?? null,
+);
+
+// ─── Scroll handler ───────────────────────────────────────────────────────────
 const updateProgress = () => {
     if (!articleRef.value) {
         return;
@@ -48,9 +88,73 @@ const updateProgress = () => {
     );
 };
 
-const postUrl = computed(() => {
-    return blog.show(props.post.slug).url;
-});
+// ─── TOC: extrai headings do HTML renderizado ─────────────────────────────────
+const buildToc = () => {
+    const contentEl = document.querySelector('[data-post-body]');
+
+    if (!contentEl) {
+        return;
+    }
+
+    const headings = contentEl.querySelectorAll<HTMLHeadingElement>('h2, h3');
+    const items: TocItem[] = [];
+
+    headings.forEach((h) => {
+        const text = h.textContent?.replace(/^#/, '').trim() ?? '';
+
+        if (!text) {
+            return;
+        }
+
+        // Garante que o heading tem id para scroll-spy
+        if (!h.id) {
+            h.id = slugify(text);
+        }
+
+        items.push({ id: h.id, text, level: parseInt(h.tagName[1]) });
+    });
+
+    tocItems.value = items;
+};
+
+// ─── TOC scroll-spy via IntersectionObserver ──────────────────────────────────
+let tocObserver: IntersectionObserver | null = null;
+
+const initTocObserver = () => {
+    tocObserver?.disconnect();
+
+    tocObserver = new IntersectionObserver(
+        (entries) => {
+            const visible = entries.find((e) => e.isIntersecting);
+
+            if (visible) {
+                activeTocId.value = visible.target.id;
+            }
+        },
+        { rootMargin: '-20% 0px -70% 0px', threshold: 0 },
+    );
+
+    tocItems.value.forEach(({ id }) => {
+        const el = document.getElementById(id);
+
+        if (el) {
+            tocObserver!.observe(el);
+        }
+    });
+};
+
+const scrollToHeading = (id: string) => {
+    const el = document.getElementById(id);
+
+    if (!el) {
+        return;
+    }
+
+    window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
+};
+
+// ─── Share ────────────────────────────────────────────────────────────────────
+const postUrl = computed(() => blog.show(props.post.slug).url);
 
 const copyLink = async () => {
     await navigator.clipboard.writeText(postUrl.value);
@@ -63,13 +167,17 @@ const shareOnX = () => {
     window.open(url, '_blank', 'noopener');
 };
 
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(() => {
     hljs.highlightAll();
     window.addEventListener('scroll', updateProgress, { passive: true });
+    buildToc();
+    initTocObserver();
 });
 
 onUnmounted(() => {
     window.removeEventListener('scroll', updateProgress);
+    tocObserver?.disconnect();
 });
 </script>
 
@@ -86,7 +194,63 @@ onUnmounted(() => {
         </div>
 
         <article ref="articleRef" class="px-6 pt-28 pb-24">
-            <!-- Floating Actions — Desktop Sidebar -->
+            <!-- ── TOC — Desktop Left Sidebar ───────────────────────────── -->
+            <aside
+                class="fixed top-1/2 left-6 z-40 hidden w-52 -translate-y-1/2 flex-col gap-0 2xl:flex"
+            >
+                <p
+                    class="mb-3 text-xs tracking-widest text-muted-foreground uppercase"
+                >
+                    Neste artigo
+                </p>
+
+                <nav class="flex flex-col gap-0.5">
+                    <button
+                        v-for="item in tocItems"
+                        :key="item.id"
+                        @click="scrollToHeading(item.id)"
+                        class="group flex cursor-pointer items-start gap-2 py-1 text-left transition-colors duration-150"
+                        :class="[
+                            item.level === 3 ? 'pl-4' : 'pl-0',
+                            activeTocId === item.id
+                                ? 'text-foreground'
+                                : 'text-muted-foreground hover:text-foreground/70',
+                        ]"
+                    >
+                        <span
+                            class="mt-1.5 h-1 w-1 shrink-0 rounded-full transition-all duration-150"
+                            :class="
+                                activeTocId === item.id
+                                    ? 'scale-125 bg-foreground'
+                                    : 'bg-border'
+                            "
+                        />
+                        <span
+                            class="line-clamp-2 text-xs leading-relaxed"
+                            :class="
+                                activeTocId === item.id ? 'font-medium' : ''
+                            "
+                        >
+                            {{ item.text }}
+                        </span>
+                    </button>
+                </nav>
+
+                <!-- Mini reading progress -->
+                <div v-if="readingProgress > 0" class="mt-4 space-y-1">
+                    <div class="h-px w-full rounded-full bg-border/60">
+                        <div
+                            class="h-px rounded-full bg-primary transition-all duration-300"
+                            :style="{ width: `${readingProgress}%` }"
+                        />
+                    </div>
+                    <p class="text-right text-[10px] text-muted-foreground">
+                        ~{{ minutesRemaining }} min restantes
+                    </p>
+                </div>
+            </aside>
+
+            <!-- ── Floating Actions — Desktop Right Sidebar ──────────────── -->
             <aside
                 class="fixed top-1/2 right-6 z-40 hidden -translate-y-1/2 flex-col gap-3 xl:flex"
             >
@@ -165,10 +329,11 @@ onUnmounted(() => {
                 </button>
             </aside>
 
+            <!-- ── Content ─────────────────────────────────────────────── -->
             <div class="mx-auto max-w-3xl">
                 <!-- Header -->
                 <header class="animate-fade-in-up mb-12">
-                    <!-- Breadcrumb + Meta -->
+                    <!-- Breadcrumb + Category -->
                     <div
                         class="mb-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm"
                     >
@@ -179,12 +344,9 @@ onUnmounted(() => {
                             Blog
                         </Link>
                         <span class="text-border">›</span>
-                        <span
-                            v-if="post.category"
-                            class="font-medium text-foreground"
-                        >
+                        <Badge v-if="post.category" variant="secondary">
                             {{ post.category.name }}
-                        </span>
+                        </Badge>
                     </div>
 
                     <h1
@@ -200,7 +362,7 @@ onUnmounted(() => {
                         {{ post.excerpt }}
                     </p>
 
-                    <!-- Author row -->
+                    <!-- Author + meta row -->
                     <div
                         class="flex flex-wrap items-center justify-center gap-4 text-sm"
                     >
@@ -248,6 +410,10 @@ onUnmounted(() => {
                                 />
                             </svg>
                             {{ post.reading_time }} min de leitura
+                            <template v-if="wordCountFormatted">
+                                <span class="text-border">·</span>
+                                {{ wordCountFormatted }} palavras
+                            </template>
                         </span>
                     </div>
                 </header>
@@ -266,12 +432,11 @@ onUnmounted(() => {
                         class="aspect-video w-full object-cover transition-transform duration-700 hover:scale-[1.02]"
                     />
                 </div>
-
-                <!-- Divider when no image -->
                 <div v-else class="mb-16 h-px bg-border/60" />
 
-                <!-- Content -->
+                <!-- Post Body -->
                 <div
+                    data-post-body
                     class="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:underline prose-blockquote:border-primary/50 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-code:rounded-md prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:rounded-2xl prose-pre:border prose-pre:border-border prose-img:rounded-2xl prose-img:shadow-md prose-hr:border-border"
                 >
                     <div v-html="post.body" />
@@ -279,18 +444,25 @@ onUnmounted(() => {
 
                 <!-- Footer -->
                 <footer class="mt-20">
-                    <!-- Tags -->
-                    <div
-                        v-if="post.tags && post.tags.length > 0"
-                        class="mb-10 flex flex-wrap gap-2"
-                    >
-                        <span
-                            v-for="(tag, i) in post.tags"
-                            :key="i"
-                            class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            #{{ getTagName(tag) }}
-                        </span>
+                    <!-- Tags colapsáveis -->
+                    <div v-if="post.tags && post.tags.length > 0" class="mb-10">
+                        <div class="flex flex-wrap gap-2">
+                            <span
+                                v-for="(tag, i) in visibleTags"
+                                :key="i"
+                                class="rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                #{{ getTagName(tag) }}
+                            </span>
+
+                            <button
+                                v-if="hiddenTagCount > 0 && !showAllTags"
+                                @click="showAllTags = true"
+                                class="rounded-full border border-dashed border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                            >
+                                +{{ hiddenTagCount }} mais
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Share row (mobile) -->
@@ -351,52 +523,29 @@ onUnmounted(() => {
 
                     <div class="border-t border-border pt-10" />
 
-                    <!-- Author Card -->
+                    <!-- Author Card — HoverCard corrigido -->
                     <div
                         v-if="post.author"
                         class="mt-10 flex flex-col items-center gap-5 rounded-3xl border border-border/60 bg-muted/60 p-7 sm:flex-row sm:items-start"
                     >
                         <HoverCard>
-                            <HoverCardTrigger>
-                                <div
-                                    v-if="post.author.avatar_url"
-                                    class="h-16 w-16 shrink-0 overflow-hidden rounded-full ring-2 ring-border"
+                            <HoverCardTrigger as-child>
+                                <Link
+                                    :href="user.show(post.author.username)"
+                                    class="shrink-0"
                                 >
                                     <img
+                                        v-if="post.author.avatar_url"
                                         :src="post.author.avatar_url"
                                         :alt="post.author.name"
-                                        class="h-full w-full object-cover"
+                                        class="h-16 w-16 rounded-full object-cover ring-2 ring-border transition-opacity hover:opacity-80"
                                     />
-                                </div>
+                                </Link>
                             </HoverCardTrigger>
 
-                            <div class="text-center sm:text-left">
-                                <p
-                                    class="mb-1 text-xs tracking-widest text-muted-foreground uppercase"
-                                >
-                                    Escrito por
-                                </p>
-                                <HoverCardTrigger as-child>
-                                    <Link
-                                        :href="user.show(post.author.username)"
-                                        class="text-lg font-bold hover:underline"
-                                    >
-                                        {{ post.author.name }}
-                                    </Link>
-                                </HoverCardTrigger>
-                                <p
-                                    class="mt-1.5 text-sm leading-relaxed text-muted-foreground"
-                                >
-                                    Desenvolvedor e fundador da mktcode.
-                                    Apaixonado por transformar ideias em
-                                    produtos digitais de alta performance.
-                                </p>
-                            </div>
-                            <HoverCardContent>
-                                <div
-                                    class="flex items-center justify-start gap-4"
-                                >
-                                    <Avatar class="h-16 w-16">
+                            <HoverCardContent class="w-72">
+                                <div class="flex items-start gap-4">
+                                    <Avatar class="h-14 w-14 shrink-0">
                                         <AvatarImage
                                             :src="post.author.avatar_url || ''"
                                         />
@@ -404,15 +553,49 @@ onUnmounted(() => {
                                             post.author.name.charAt(0)
                                         }}</AvatarFallback>
                                     </Avatar>
-                                    <div class="space-y-1">
-                                        <h4 class="text-lg font-semibold">
+                                    <div class="min-w-0 space-y-1">
+                                        <h4 class="text-sm font-semibold">
                                             {{ post.author.name }}
                                         </h4>
-
+                                        <p
+                                            v-if="post.author.title"
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{ post.author.title }}
+                                        </p>
+                                        <Link
+                                            :href="
+                                                user.show(post.author.username)
+                                            "
+                                            class="text-xs text-primary hover:underline"
+                                        >
+                                            Ver perfil →
+                                        </Link>
                                     </div>
                                 </div>
                             </HoverCardContent>
                         </HoverCard>
+
+                        <div class="text-center sm:text-left">
+                            <p
+                                class="mb-1 text-xs tracking-widest text-muted-foreground uppercase"
+                            >
+                                Escrito por
+                            </p>
+                            <Link
+                                :href="user.show(post.author.username)"
+                                class="text-lg font-bold hover:underline"
+                            >
+                                {{ post.author.name }}
+                            </Link>
+                            <p
+                                class="mt-1.5 text-sm leading-relaxed text-muted-foreground"
+                            >
+                                Desenvolvedor e fundador da mktcode. Apaixonado
+                                por transformar ideias em produtos digitais de
+                                alta performance.
+                            </p>
+                        </div>
                     </div>
                 </footer>
             </div>
@@ -425,11 +608,14 @@ onUnmounted(() => {
     .phiki,
     .phiki span,
     .phiki code {
-        /* color: var(--phiki-dark-color) !important; */
-        background-color: #0d1117 !important;
-        /* font-style: var(--phiki-dark-font-style) !important; */
-        /* font-weight: var(--phiki-dark-font-weight) !important; */
-        /* text-decoration: var(--phiki-dark-text-decoration) !important; */
+        color: var(--phiki-dark-color) !important;
+        background-color: var(
+            --phiki-dark-background-color,
+            #0d1117
+        ) !important;
+        font-style: var(--phiki-dark-font-style) !important;
+        font-weight: var(--phiki-dark-font-weight) !important;
+        text-decoration: var(--phiki-dark-text-decoration) !important;
     }
 }
 

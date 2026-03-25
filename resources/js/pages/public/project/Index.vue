@@ -86,16 +86,16 @@ onUnmounted(() => observer?.disconnect());
                     class="reveal mb-20 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
                 >
                     <div class="max-w-2xl">
-                        <p
+                        <h1
                             class="mb-3 text-xs font-bold tracking-widest text-primary uppercase"
                         >
                             Portfólio
-                        </p>
-                        <h1
+                        </h1>
+                        <h2
                             class="text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl"
                         >
                             O que já construímos.
-                        </h1>
+                        </h2>
                         <p
                             class="mt-5 text-lg leading-relaxed text-muted-foreground"
                         >

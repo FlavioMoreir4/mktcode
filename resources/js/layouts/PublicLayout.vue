@@ -39,6 +39,8 @@ const closeMobile = () => {
     mobileOpen.value = false;
 };
 
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
 // Close on route change
 const page = usePage();
 
@@ -389,11 +391,11 @@ const navLinks = computed(() => [
 
                     <!-- Links -->
                     <div>
-                        <h4
+                        <h2
                             class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
                         >
                             Navegação
-                        </h4>
+                        </h2>
                         <ul class="space-y-2.5 text-sm" role="list">
                             <li v-for="link in navLinks" :key="link.href.url">
                                 <Link
@@ -413,11 +415,11 @@ const navLinks = computed(() => [
 
                     <!-- Contact -->
                     <div>
-                        <h4
+                        <h2
                             class="mb-4 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
                         >
                             Contato
-                        </h4>
+                        </h2>
                         <ul class="space-y-2.5 text-sm" role="list">
                             <li>
                                 <a
@@ -466,6 +468,35 @@ const navLinks = computed(() => [
                 </div>
             </div>
         </footer>
+        <Transition
+            enter-active-class="transition-all duration-200"
+            enter-from-class="opacity-0 translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-150"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <button
+                v-if="isScrolled"
+                @click="scrollToTop"
+                class="group fixed right-4 bottom-4 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background shadow-sm transition-all duration-200 hover:bg-muted"
+                title="Voltar ao topo"
+            >
+                <svg
+                    class="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M5 10l7-7m0 0l7 7m-7-7v18"
+                    />
+                </svg>
+            </button>
+        </Transition>
     </div>
 </template>
 
@@ -501,5 +532,20 @@ img:not([style*='display: none']) + .logo-fallback {
 /* Ajuste fino para o trigger do sheet (hambúrguer) */
 [data-radix-vue-collection-item] {
     outline: none;
+}
+
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out both;
 }
 </style>

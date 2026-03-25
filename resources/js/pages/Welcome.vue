@@ -362,9 +362,9 @@ const submit = () => {
                                 class="h-6 w-6 text-primary"
                             />
                         </div>
-                        <h4 class="mb-2 text-lg font-bold">
+                        <h3 class="mb-2 text-lg font-bold">
                             {{ service.title }}
-                        </h4>
+                        </h3>
                         <p
                             class="text-sm leading-relaxed text-muted-foreground"
                         >
@@ -422,9 +422,9 @@ const submit = () => {
                             {{ diff.number }}
                         </span>
                         <div>
-                            <h4 class="mb-2 text-xl font-bold">
+                            <h3 class="mb-2 text-xl font-bold">
                                 {{ diff.title }}
-                            </h4>
+                            </h3>
                             <p class="leading-relaxed text-muted-foreground">
                                 {{ diff.desc }}
                             </p>
@@ -603,7 +603,7 @@ const submit = () => {
                                     <LucideSend class="h-5 w-5" />
                                 </div>
                                 <div class="min-w-0">
-                                    <h4 class="font-bold">Telegram</h4>
+                                    <h3 class="font-bold">Telegram</h3>
                                     <p class="text-sm text-muted-foreground">
                                         @flaviomoreir4 · Resposta mais rápida
                                     </p>
@@ -625,7 +625,7 @@ const submit = () => {
                                     <LucidePhone class="h-5 w-5" />
                                 </div>
                                 <div class="min-w-0">
-                                    <h4 class="font-bold">WhatsApp</h4>
+                                    <h3 class="font-bold">WhatsApp</h3>
                                     <p class="text-sm text-muted-foreground">
                                         +55 11 98277-6725 · Conversa direta
                                     </p>
@@ -645,7 +645,7 @@ const submit = () => {
                                     <LucideMessageSquare class="h-5 w-5" />
                                 </div>
                                 <div class="min-w-0">
-                                    <h4 class="font-bold">E-mail</h4>
+                                    <h3 class="font-bold">E-mail</h3>
                                     <p
                                         class="truncate text-sm text-muted-foreground"
                                     >
