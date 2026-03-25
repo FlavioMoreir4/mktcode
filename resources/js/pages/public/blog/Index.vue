@@ -8,7 +8,8 @@ import {
     Tag,
     Rss,
 } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
@@ -22,7 +23,20 @@ const props = defineProps<{
     seo?: SeoData;
 }>();
 
-// ─── Featured = first post on page 1, otherwise none ─────────────────────────
+// ─── Tag name ─────────────────────────────────────────────────────────────────
+//
+// No payload real tag.name sempre chega como string.
+// Mantemos o fallback multilingual por segurança, mas sem complexidade desnecessária.
+//
+const tagName = (tag: any): string => {
+    if (typeof tag.name === 'string') {
+        return tag.name;
+    }
+
+    return tag.name?.pt ?? tag.name?.en ?? Object.values(tag.name)[0] ?? '';
+};
+
+// ─── Featured: primeiro post só na página 1 ───────────────────────────────────
 const featuredPost = computed(() =>
     props.posts.meta.current_page === 1 ? (props.posts.data[0] ?? null) : null,
 );
@@ -31,16 +45,74 @@ const restPosts = computed(() =>
     featuredPost.value ? props.posts.data.slice(1) : props.posts.data,
 );
 
-// ─── Tag name helper ──────────────────────────────────────────────────────────
-const tagName = (tag: any): string => {
-    if (typeof tag.name === 'string') {
-        return tag.name;
+// ─── Categorias únicas para o filtro ─────────────────────────────────────────
+//
+// Calculado sobre todos os posts da página (incluindo o featured).
+// Só exibe o filtro se há 2+ categorias distintas.
+//
+const categories = computed(() => {
+    const seen = new Set<string>();
+    const list: Array<{ name: string; slug: string }> = [];
+
+    props.posts.data.forEach((p) => {
+        if (p.category && !seen.has(p.category.slug)) {
+            seen.add(p.category.slug);
+            list.push(p.category);
+        }
+    });
+
+    return list.sort((a, b) => a.name.localeCompare(b.name));
+});
+
+const showFilter = computed(() => categories.value.length >= 2);
+
+// ─── Filtro ativo ─────────────────────────────────────────────────────────────
+//
+// Quando ativo:
+//   - o featured fica visível apenas se sua categoria bate
+//   - restPosts é filtrado da mesma forma
+//
+const activeCategory = ref<string | null>(null);
+
+const isFiltering = computed(() => activeCategory.value !== null);
+
+const visibleFeatured = computed(() => {
+    if (!featuredPost.value) {
+        return null;
     }
 
-    return tag.name?.en ?? tag.name?.pt ?? Object.values(tag.name)[0] ?? '';
-};
+    if (!isFiltering.value) {
+        return featuredPost.value;
+    }
 
-// ─── Pagination ───────────────────────────────────────────────────────────────
+    return featuredPost.value.category?.slug === activeCategory.value
+        ? featuredPost.value
+        : null;
+});
+
+const visibleRest = computed(() => {
+    if (!isFiltering.value) {
+        return restPosts.value;
+    }
+
+    return restPosts.value.filter(
+        (p) => p.category?.slug === activeCategory.value,
+    );
+});
+
+// Contagem por categoria slug (sobre todos os posts da página)
+const categoryCounts = computed(() => {
+    const counts = new Map<string, number>();
+    props.posts.data.forEach((p) => {
+        if (p.category) {
+            counts.set(p.category.slug, (counts.get(p.category.slug) ?? 0) + 1);
+        }
+    });
+
+    return counts;
+});
+
+// ─── Paginação ────────────────────────────────────────────────────────────────
 const goTo = (url: string | null) => {
     if (!url) {
         return;
@@ -76,9 +148,11 @@ onUnmounted(() => observer?.disconnect());
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">
             <div class="mx-auto max-w-7xl">
-                <!-- ── Header ──────────────────────────────────────────── -->
+                <!-- ════════════════════════════════════════════════════════
+                     HEADER
+                ════════════════════════════════════════════════════════ -->
                 <div
-                    class="reveal mb-20 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+                    class="reveal mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
                 >
                     <div class="max-w-2xl">
                         <p
@@ -103,40 +177,94 @@ onUnmounted(() => observer?.disconnect());
                         </p>
                     </div>
 
-                    <!-- Counter -->
-                    <div class="shrink-0 text-right">
+                    <div
+                        class="flex shrink-0 flex-col items-start gap-1 md:items-end"
+                    >
                         <div
-                            class="mb-1 flex items-center justify-end gap-2 text-muted-foreground"
+                            class="mb-1 flex items-center gap-2 text-muted-foreground md:justify-end"
                         >
                             <Rss class="h-4 w-4 text-primary" />
                             <span
                                 class="text-xs font-semibold tracking-wider uppercase"
-                                >Publicações</span
                             >
+                                Publicações
+                            </span>
                         </div>
-                        <p class="text-5xl font-bold tabular-nums">
-                            {{ posts.total }}<span class="text-primary">+</span>
+                        <p class="text-5xl leading-none font-bold tabular-nums">
+                            {{ posts.meta.total
+                            }}<span
+                                v-if="posts.meta.total > 0"
+                                class="text-primary"
+                                >+</span
+                            >
                         </p>
                         <p class="text-sm text-muted-foreground">
-                            artigos publicados
+                            Artigos publicados
                         </p>
                     </div>
                 </div>
 
-                <!-- ── Featured Post ────────────────────────────────────── -->
-                <div v-if="featuredPost" class="reveal mb-20">
+                <!-- ════════════════════════════════════════════════════════
+                     FILTRO POR CATEGORIA
+                     Só aparece se há 2+ categorias distintas na página.
+                     Quando ativo, filtra tanto o featured quanto o grid.
+                ════════════════════════════════════════════════════════ -->
+                <div
+                    v-if="showFilter"
+                    class="reveal mb-12 flex flex-wrap items-center gap-2"
+                    role="group"
+                    aria-label="Filtrar por categoria"
+                >
+                    <button
+                        class="inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-all"
+                        :class="
+                            !isFiltering
+                                ? 'border-primary bg-primary/10 text-primary'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                        "
+                        @click="activeCategory = null"
+                    >
+                        Todos
+                        <span class="tabular-nums opacity-60">
+                            ({{ posts.data.length }})
+                        </span>
+                    </button>
+
+                    <button
+                        v-for="cat in categories"
+                        :key="cat.slug"
+                        class="inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-all"
+                        :class="
+                            activeCategory === cat.slug
+                                ? 'border-primary bg-primary/10 text-primary'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                        "
+                        @click="activeCategory = cat.slug"
+                    >
+                        {{ cat.name }}
+                        <span class="tabular-nums opacity-60">
+                            ({{ categoryCounts.get(cat.slug) ?? 0 }})
+                        </span>
+                    </button>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════
+                     FEATURED POST
+                     Some quando o filtro ativo não bate com a categoria dele.
+                ════════════════════════════════════════════════════════ -->
+                <div v-if="visibleFeatured" class="reveal mb-20">
                     <Link
-                        :href="blog.show(featuredPost.slug)"
+                        :href="blog.show(visibleFeatured.slug)"
                         class="group relative grid grid-cols-1 overflow-hidden rounded-[2rem] border border-border bg-card transition-all duration-500 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/8 lg:grid-cols-2"
                     >
-                        <!-- Image -->
+                        <!-- Imagem -->
                         <div
                             class="relative aspect-video overflow-hidden bg-muted lg:aspect-auto"
                         >
                             <img
-                                v-if="featuredPost.media?.cover"
-                                :src="featuredPost.media.cover.url"
-                                :alt="featuredPost.title"
+                                v-if="visibleFeatured.media?.cover"
+                                :src="visibleFeatured.media.cover.url"
+                                :alt="visibleFeatured.title"
                                 fetchpriority="high"
                                 loading="eager"
                                 decoding="sync"
@@ -149,11 +277,11 @@ onUnmounted(() => observer?.disconnect());
                                 <span
                                     class="text-7xl font-bold text-primary/15"
                                 >
-                                    {{ featuredPost.title.charAt(0) }}
+                                    {{ visibleFeatured.title.charAt(0) }}
                                 </span>
                             </div>
 
-                            <!-- Badge -->
+                            <!-- Badge "Mais recente" -->
                             <div class="absolute top-5 left-5">
                                 <span
                                     class="rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
@@ -163,7 +291,7 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </div>
 
-                        <!-- Content -->
+                        <!-- Conteúdo -->
                         <div
                             class="flex flex-col justify-center gap-5 p-10 lg:p-14"
                         >
@@ -172,13 +300,13 @@ onUnmounted(() => observer?.disconnect());
                                 class="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm text-muted-foreground"
                             >
                                 <span
-                                    v-if="featuredPost.category"
+                                    v-if="visibleFeatured.category"
                                     class="font-semibold text-primary"
                                 >
-                                    {{ featuredPost.category.name }}
+                                    {{ visibleFeatured.category.name }}
                                 </span>
                                 <span
-                                    v-if="featuredPost.category"
+                                    v-if="visibleFeatured.category"
                                     class="text-border"
                                     >·</span
                                 >
@@ -186,14 +314,15 @@ onUnmounted(() => observer?.disconnect());
                                     <Calendar class="h-3.5 w-3.5" />
                                     {{
                                         formatDate(
-                                            featuredPost.published_at ?? '',
+                                            visibleFeatured.published_at ?? '',
                                         )
                                     }}
                                 </span>
                                 <span class="text-border">·</span>
                                 <span class="flex items-center gap-1.5">
                                     <Clock class="h-3.5 w-3.5" />
-                                    {{ featuredPost.reading_time }} min
+                                    {{ visibleFeatured.reading_time }} min de
+                                    leitura
                                 </span>
                             </div>
 
@@ -201,50 +330,60 @@ onUnmounted(() => observer?.disconnect());
                                 <h2
                                     class="text-3xl leading-tight font-bold tracking-tight md:text-4xl"
                                 >
-                                    {{ featuredPost.title }}
+                                    {{ visibleFeatured.title }}
                                 </h2>
                                 <p
-                                    v-if="featuredPost.excerpt"
+                                    v-if="visibleFeatured.excerpt"
                                     class="mt-4 line-clamp-3 text-lg leading-relaxed text-muted-foreground"
                                 >
-                                    {{ featuredPost.excerpt }}
+                                    {{ visibleFeatured.excerpt }}
                                 </p>
                             </div>
 
-                            <!-- Tags -->
+                            <!-- Tags
+                                 Limitadas a 3 para não sobrecarregar visualmente.
+                                 Tags longas ficam truncadas com max-width.
+                            -->
                             <div
-                                v-if="featuredPost.tags?.length"
+                                v-if="visibleFeatured.tags?.length"
                                 class="flex flex-wrap gap-2"
                             >
                                 <span
-                                    v-for="(tag, i) in featuredPost.tags.slice(
-                                        0,
-                                        4,
-                                    )"
+                                    v-for="(
+                                        tag, i
+                                    ) in visibleFeatured.tags.slice(0, 3)"
                                     :key="i"
-                                    class="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+                                    class="max-w-[160px] truncate rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+                                    :title="tagName(tag)"
                                 >
                                     #{{ tagName(tag) }}
                                 </span>
+                                <!-- "+N mais" quando há tags sobrando -->
+                                <span
+                                    v-if="visibleFeatured.tags.length > 3"
+                                    class="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
+                                >
+                                    +{{ visibleFeatured.tags.length - 3 }}
+                                </span>
                             </div>
 
-                            <!-- Author + CTA row -->
+                            <!-- Autor + CTA -->
                             <div
-                                class="flex items-center justify-between border-t border-border pt-2"
+                                class="flex items-center justify-between border-t border-border pt-4"
                             >
                                 <div
-                                    v-if="featuredPost.author"
+                                    v-if="visibleFeatured.author"
                                     class="flex items-center gap-2.5"
                                 >
                                     <img
-                                        v-if="featuredPost.author.avatar_url"
-                                        :src="featuredPost.author.avatar_url"
-                                        :alt="featuredPost.author.name"
+                                        v-if="visibleFeatured.author.avatar_url"
+                                        :src="visibleFeatured.author.avatar_url"
+                                        :alt="visibleFeatured.author.name"
                                         class="h-8 w-8 rounded-full object-cover ring-1 ring-border"
                                     />
-                                    <span class="text-sm font-medium">{{
-                                        featuredPost.author.name
-                                    }}</span>
+                                    <span class="text-sm font-medium">
+                                        {{ visibleFeatured.author.name }}
+                                    </span>
                                 </div>
                                 <span
                                     class="flex items-center gap-1.5 text-sm font-bold text-primary transition-all group-hover:gap-2.5"
@@ -259,21 +398,57 @@ onUnmounted(() => observer?.disconnect());
                     </Link>
                 </div>
 
-                <!-- ── Grid de posts ───────────────────────────────────── -->
+                <!-- ════════════════════════════════════════════════════════
+                     GRID DE POSTS
+                     Quando o filtro some o featured mas há posts no grid,
+                     exibimos o cabeçalho de resultado filtrado.
+                ════════════════════════════════════════════════════════ -->
+
+                <!-- Cabeçalho de resultado filtrado -->
                 <div
-                    v-if="restPosts.length"
-                    class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+                    v-if="isFiltering"
+                    class="reveal mb-8 flex items-center justify-between"
+                >
+                    <p class="text-sm text-muted-foreground">
+                        <strong class="text-foreground">
+                            {{ (visibleFeatured ? 1 : 0) + visibleRest.length }}
+                        </strong>
+                        {{
+                            (visibleFeatured ? 1 : 0) + visibleRest.length === 1
+                                ? 'artigo encontrado'
+                                : 'artigos encontrados'
+                        }}
+                        em
+                        <strong class="text-primary">
+                            {{
+                                categories.find(
+                                    (c) => c.slug === activeCategory,
+                                )?.name
+                            }}
+                        </strong>
+                    </p>
+                    <button
+                        class="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                        @click="activeCategory = null"
+                    >
+                        Limpar filtro ×
+                    </button>
+                </div>
+
+                <div
+                    v-if="visibleRest.length"
+                    class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <article
-                        v-for="(post, i) in restPosts"
-                        :key="i"
-                        class="reveal group flex flex-col"
+                        v-for="(post, i) in visibleRest"
+                        :key="post.slug"
+                        class="reveal group flex flex-col overflow-hidden rounded-3xl border border-border/70 bg-card transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
                         :style="{ '--reveal-delay': `${(i % 3) * 70}ms` }"
                     >
                         <!-- Thumbnail -->
                         <Link
                             :href="blog.show(post.slug)"
-                            class="relative mb-5 block aspect-video overflow-hidden rounded-2xl bg-muted"
+                            class="relative block aspect-video overflow-hidden bg-muted"
                             tabindex="-1"
                             aria-hidden="true"
                         >
@@ -281,6 +456,8 @@ onUnmounted(() => observer?.disconnect());
                                 v-if="post.media?.cover"
                                 :src="post.media.cover.url"
                                 :alt="post.title"
+                                loading="lazy"
+                                decoding="async"
                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                             />
                             <div
@@ -307,8 +484,8 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </Link>
 
-                        <!-- Content -->
-                        <div class="flex flex-1 flex-col gap-3">
+                        <!-- Conteúdo do card -->
+                        <div class="flex flex-1 flex-col gap-3 p-6">
                             <!-- Meta row -->
                             <div
                                 class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground"
@@ -320,11 +497,11 @@ onUnmounted(() => observer?.disconnect());
                                 <span class="text-border">·</span>
                                 <span class="flex items-center gap-1">
                                     <Clock class="h-3 w-3" />
-                                    {{ post.reading_time }} min de leitura
+                                    {{ post.reading_time }} min
                                 </span>
                             </div>
 
-                            <!-- Title -->
+                            <!-- Título -->
                             <h2
                                 class="text-xl leading-snug font-bold tracking-tight transition-colors group-hover:text-primary"
                             >
@@ -341,25 +518,31 @@ onUnmounted(() => observer?.disconnect());
                                 {{ post.excerpt }}
                             </p>
 
-                            <!-- Tags -->
+                            <!-- Tags — max 2 no card pequeno para não poluir -->
                             <div
                                 v-if="post.tags?.length"
                                 class="flex flex-wrap gap-1.5"
                             >
                                 <span
-                                    v-for="(tag, i) in post.tags.slice(0, 3)"
+                                    v-for="(tag, i) in post.tags.slice(0, 2)"
                                     :key="i"
-                                    class="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                    class="max-w-[120px] truncate rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                    :title="tagName(tag)"
                                 >
                                     #{{ tagName(tag) }}
                                 </span>
+                                <span
+                                    v-if="post.tags.length > 2"
+                                    class="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                >
+                                    +{{ post.tags.length - 2 }}
+                                </span>
                             </div>
 
-                            <!-- Footer -->
+                            <!-- Footer: autor + link "Ler" -->
                             <div
                                 class="mt-auto flex items-center justify-between border-t border-border/60 pt-4"
                             >
-                                <!-- Author -->
                                 <div
                                     v-if="post.author"
                                     class="flex items-center gap-2"
@@ -372,12 +555,19 @@ onUnmounted(() => observer?.disconnect());
                                     />
                                     <span
                                         class="text-xs font-medium text-muted-foreground"
-                                        >{{ post.author.name }}</span
                                     >
+                                        {{ post.author.name }}
+                                    </span>
                                 </div>
+                                <!--
+                                    "Ler" sempre visível (não só no hover):
+                                    mobile não tem hover state, então esconder com opacity-0
+                                    tornava o CTA inacessível em touch.
+                                -->
                                 <Link
                                     :href="blog.show(post.slug)"
-                                    class="flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                                    class="flex items-center gap-1 text-xs font-bold text-primary"
+                                    aria-label="Ler artigo: {{ post.title }}"
                                 >
                                     Ler
                                     <ArrowRight
@@ -389,9 +579,42 @@ onUnmounted(() => observer?.disconnect());
                     </article>
                 </div>
 
-                <!-- ── Empty state ─────────────────────────────────────── -->
+                <!-- ── Empty state do filtro ───────────────────────────── -->
                 <div
-                    v-else-if="!featuredPost"
+                    v-else-if="isFiltering && !visibleFeatured"
+                    class="reveal flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border py-16 text-center"
+                >
+                    <div
+                        class="flex h-12 w-12 items-center justify-center rounded-full bg-muted"
+                    >
+                        <Tag class="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p class="font-medium text-foreground">
+                            Nenhum artigo em
+                            <strong class="text-primary">
+                                {{
+                                    categories.find(
+                                        (c) => c.slug === activeCategory,
+                                    )?.name
+                                }} </strong
+                            >.
+                        </p>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            Tente outra categoria ou navegue para outra página.
+                        </p>
+                    </div>
+                    <button
+                        class="text-sm font-semibold text-primary hover:underline"
+                        @click="activeCategory = null"
+                    >
+                        Ver todos os artigos
+                    </button>
+                </div>
+
+                <!-- ── Empty state global ─────────────────────────────── -->
+                <div
+                    v-else-if="!visibleFeatured && !visibleRest.length"
                     class="reveal flex flex-col items-center gap-4 py-32 text-center"
                 >
                     <div
@@ -409,12 +632,18 @@ onUnmounted(() => observer?.disconnect());
                     </div>
                 </div>
 
-                <!-- ── Pagination ──────────────────────────────────────── -->
+                <!-- ════════════════════════════════════════════════════════
+                     PAGINAÇÃO COM NÚMEROS
+                     O filtro é client-side (página atual apenas).
+                     Quando filtrando, ocultamos a paginação para evitar
+                     confusão: o usuário não sabe que outras páginas podem
+                     ter mais posts da categoria filtrada.
+                ════════════════════════════════════════════════════════ -->
                 <div
-                    v-if="posts.last_page > 1"
+                    v-if="posts.last_page > 1 && !isFiltering"
                     class="reveal mt-16 flex flex-col items-center gap-6"
                 >
-                    <!-- Page numbers -->
+                    <!-- Números de página -->
                     <div class="flex items-center gap-1.5">
                         <button
                             :disabled="!posts.prev_page_url"
@@ -429,14 +658,12 @@ onUnmounted(() => observer?.disconnect());
                             v-for="link in posts.links.slice(1, -1)"
                             :key="link.label"
                         >
-                            <!-- Ellipsis -->
                             <span
                                 v-if="link.label === '...'"
                                 class="flex h-10 w-10 items-center justify-center text-sm text-muted-foreground"
                             >
                                 …
                             </span>
-                            <!-- Page number -->
                             <button
                                 v-else
                                 :disabled="!link.url"
@@ -479,7 +706,27 @@ onUnmounted(() => observer?.disconnect());
                     </p>
                 </div>
 
-                <!-- ── Bottom CTA ──────────────────────────────────────── -->
+                <!--
+                    Aviso quando filtrando e há mais páginas:
+                    orienta o usuário a limpar o filtro para paginar.
+                -->
+                <p
+                    v-if="posts.last_page > 1 && isFiltering"
+                    class="reveal mt-10 text-center text-sm text-muted-foreground"
+                >
+                    O filtro age somente na página atual.
+                    <button
+                        class="font-semibold text-primary hover:underline"
+                        @click="activeCategory = null"
+                    >
+                        Limpar filtro
+                    </button>
+                    para navegar entre páginas.
+                </p>
+
+                <!-- ════════════════════════════════════════════════════════
+                     CTA FINAL
+                ════════════════════════════════════════════════════════ -->
                 <div class="reveal mt-24">
                     <div
                         class="overflow-hidden rounded-[2rem] bg-primary px-8 py-14 text-primary-foreground md:px-14"
@@ -535,7 +782,7 @@ onUnmounted(() => observer?.disconnect());
 
 <style scoped>
 .reveal {
-    opacity: 0;
+    /* opacity: 0; */
     transform: translateY(20px);
     transition:
         opacity 0.5s ease,

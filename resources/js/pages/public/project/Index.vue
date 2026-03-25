@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { ArrowRight, ArrowLeft, Star } from 'lucide-vue-next';
+import { ArrowRight, ArrowLeft, Star, FolderOpen } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+
 import ProjectCard from '@/components/marketing/ProjectCard.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
@@ -13,28 +14,19 @@ const props = defineProps<{
     projects: PaginatedResponse<PublicProjectViewData>;
 }>();
 
-// ─── Featured project (first featured, or first overall) ─────────────────────
-const featured = computed(
-    () =>
-        props.projects.data.find((p) => p.featured) ??
-        props.projects.data[0] ??
-        null,
+// ─── Featured projects (todos marcados como featured) ─────────────────────────
+//
+// O backend pode retornar mais de um projeto com featured: true.
+// Mostramos todos numa seção de destaque em vez de descartar os extras pro grid.
+//
+const featuredProjects = computed(() =>
+    props.projects.data.filter((p) => p.featured),
 );
 
-// ─── Rest (non-featured) ──────────────────────────────────────────────────────
-const rest = computed(() =>
-    props.projects.data.filter((p) => p !== featured.value),
-);
+// ─── Restantes (não featured) ─────────────────────────────────────────────────
+const rest = computed(() => props.projects.data.filter((p) => !p.featured));
 
-// ─── All unique stack tags across current page ────────────────────────────────
-// const allStacks = computed(() => {
-//     const set = new Set<string>();
-//     props.projects.data.forEach((p) => p.stack?.forEach((s) => set.add(s)));
-
-//     return ['Todos', ...Array.from(set).sort()];
-// });
-
-// ─── Client-side stack filter ─────────────────────────────────────────────────
+// ─── Filtro ativo ─────────────────────────────────────────────────────────────
 const activeStack = ref('Todos');
 
 const filteredRest = computed(() => {
@@ -45,13 +37,7 @@ const filteredRest = computed(() => {
     return rest.value.filter((p) => p.stack?.includes(activeStack.value));
 });
 
-// ─── Tag name helper ──────────────────────────────────────────────────────────
-// const tagName = (tag: any): string => {
-//     if (typeof tag.name === 'string') return tag.name;
-//     return tag.name?.en ?? tag.name?.pt ?? Object.values(tag.name)[0] ?? '';
-// };
-
-// ─── Pagination helpers ───────────────────────────────────────────────────────
+// ─── Paginação ────────────────────────────────────────────────────────────────
 const hasPrev = computed(() => !!props.projects.prev_page_url);
 const hasNext = computed(() => !!props.projects.next_page_url);
 const currentPage = computed(() => props.projects.current_page);
@@ -92,7 +78,10 @@ onUnmounted(() => observer?.disconnect());
     <PublicLayout>
         <div class="px-6 pt-32 pb-32">
             <div class="mx-auto max-w-7xl">
-                <!-- ── Header ──────────────────────────────────────────── -->
+                <!-- ════════════════════════════════════════════════════════
+                     HEADER
+                     Eyebrow + título + subtítulo + contador de projetos
+                ════════════════════════════════════════════════════════ -->
                 <div
                     class="reveal mb-20 flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
                 >
@@ -115,64 +104,71 @@ onUnmounted(() => observer?.disconnect());
                         </p>
                     </div>
 
-                    <!-- Counter -->
-                    <div class="shrink-0 text-right">
-                        <p class="text-5xl font-bold tabular-nums">
-                            {{ projects.total
-                            }}<span class="text-primary">+</span>
+                    <!--
+                        Counter com pill de contexto.
+                        O "+0" some se total === 0 para não ficar "0+".
+                    -->
+                    <div
+                        class="flex shrink-0 flex-col items-start gap-1 md:items-end"
+                    >
+                        <p class="text-5xl leading-none font-bold tabular-nums">
+                            {{ projects.meta.total
+                            }}<span
+                                v-if="projects.meta.total > 0"
+                                class="text-primary"
+                                >+</span
+                            >
                         </p>
                         <p class="text-sm text-muted-foreground">
-                            projetos entregues
+                            Projetos entregues
                         </p>
                     </div>
                 </div>
 
-                <!-- ── Featured Project ────────────────────────────────── -->
-                <div v-if="featured" class="reveal mb-16">
+                <!-- ════════════════════════════════════════════════════════
+                     FEATURED PROJECTS
+                     Todos os projetos com featured: true.
+                     — 1 featured  → card horizontal full-width (variant="featured")
+                     — 2+ featured → coluna de cards horizontais empilhados
+                ════════════════════════════════════════════════════════ -->
+                <div
+                    v-if="featuredProjects.length"
+                    class="reveal mb-16 space-y-6"
+                >
                     <p
-                        class="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-primary uppercase"
+                        class="flex items-center gap-2 text-xs font-bold tracking-widest text-primary uppercase"
                     >
                         <Star class="h-3.5 w-3.5 fill-primary" />
                         Destaque
                     </p>
 
-                    <ProjectCard
-                        :project="featured"
-                        variant="featured"
-                        is-priority
-                    />
+                    <div class="space-y-6">
+                        <ProjectCard
+                            v-for="(project, i) in featuredProjects"
+                            :key="project.slug"
+                            :project="project"
+                            variant="featured"
+                            :is-priority="i === 0"
+                        />
+                    </div>
                 </div>
 
-                <!-- ── Stack filter ────────────────────────────────────── -->
-                <!-- <div
-                    v-if="allStacks.length > 2"
-                    class="reveal mb-10 flex flex-wrap gap-2"
-                    role="group"
-                    aria-label="Filtrar por tecnologia"
-                >
-                    <button
-                        v-for="stack in allStacks"
-                        :key="stack"
-                        class="rounded-full border px-4 py-1.5 text-sm font-medium transition-all"
-                        :class="
-                            activeStack === stack
-                                ? 'border-primary bg-primary/10 text-primary'
-                                : 'border-border bg-background text-muted-foreground hover:border-border/80 hover:text-foreground'
-                        "
-                        @click="activeStack = stack"
-                    >
-                        {{ stack }}
-                    </button>
-                </div> -->
+                <!-- ════════════════════════════════════════════════════════
+                     STACK FILTER
+                     Só aparece se há ≥ 2 tags distintas nos projetos não-featured.
+                     Cada botão mostra a contagem de projetos com aquela tag.
+                ════════════════════════════════════════════════════════ -->
 
-                <!-- ── Projects grid ───────────────────────────────────── -->
+                <!-- ════════════════════════════════════════════════════════
+                     GRID DE PROJETOS
+                ════════════════════════════════════════════════════════ -->
                 <div
                     v-if="filteredRest.length"
                     class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
                 >
                     <div
                         v-for="(project, i) in filteredRest"
-                        :key="i"
+                        :key="project.slug"
                         class="reveal"
                         :style="{ '--reveal-delay': `${(i % 3) * 70}ms` }"
                     >
@@ -180,24 +176,58 @@ onUnmounted(() => observer?.disconnect());
                     </div>
                 </div>
 
-                <!-- Empty filter state -->
+                <!-- ── Empty state: filtro sem resultado ────────────────── -->
                 <div
                     v-else-if="activeStack !== 'Todos'"
-                    class="reveal flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center"
+                    class="reveal flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border py-16 text-center"
                 >
-                    <p class="text-muted-foreground">
-                        Nenhum projeto com
-                        <strong>{{ activeStack }}</strong> nesta página.
-                    </p>
+                    <div
+                        class="flex h-12 w-12 items-center justify-center rounded-full bg-muted"
+                    >
+                        <FolderOpen class="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p class="font-medium text-foreground">
+                            Nenhum projeto com
+                            <strong class="text-primary">{{
+                                activeStack
+                            }}</strong>
+                            nesta página.
+                        </p>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            Tente outro filtro ou navegue para a próxima página.
+                        </p>
+                    </div>
                     <button
                         class="text-sm font-semibold text-primary hover:underline"
                         @click="activeStack = 'Todos'"
                     >
-                        Ver todos
+                        Ver todos os projetos
                     </button>
                 </div>
 
-                <!-- ── Pagination ──────────────────────────────────────── -->
+                <!-- ── Empty state: sem projetos na página (raro) ─────── -->
+                <div
+                    v-else-if="!featuredProjects.length && !rest.length"
+                    class="reveal flex flex-col items-center gap-4 py-20 text-center"
+                >
+                    <p class="text-muted-foreground">
+                        Novos projetos chegando em breve.
+                    </p>
+                    <Link
+                        :href="contact().url"
+                        class="text-sm font-semibold text-primary hover:underline"
+                    >
+                        Fale sobre o seu projeto
+                    </Link>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════
+                     PAGINAÇÃO
+                     Só renderiza se há mais de uma página.
+                     Desabilitado enquanto filtro local está ativo
+                     (filtro só age na página atual).
+                ════════════════════════════════════════════════════════ -->
                 <div
                     v-if="lastPage > 1"
                     class="reveal mt-16 flex items-center justify-between gap-4"
@@ -230,7 +260,9 @@ onUnmounted(() => observer?.disconnect());
                     </button>
                 </div>
 
-                <!-- ── Bottom CTA ──────────────────────────────────────── -->
+                <!-- ════════════════════════════════════════════════════════
+                     CTA FINAL
+                ════════════════════════════════════════════════════════ -->
                 <div class="reveal mt-24">
                     <div
                         class="overflow-hidden rounded-[2rem] bg-primary px-8 py-14 text-primary-foreground md:px-14"
