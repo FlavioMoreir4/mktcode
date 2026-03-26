@@ -9,32 +9,80 @@ import {
     ArrowRight,
     Share2,
     Check,
+    ChevronLeft,
+    ChevronRight,
+    X,
 } from 'lucide-vue-next';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    HoverCard,
+    HoverCardContent,
+    HoverCardTrigger,
+} from '@/components/ui/hover-card';
 import { useHighlight } from '@/composables/useHighlight';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { projects, contact } from '@/routes/public';
+import user from '@/routes/public/user';
 import type { PublicProjectViewData } from '@/types/public';
 
 interface Props {
     project: PublicProjectViewData;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 useHighlight();
 
-// ─── Lightbox ─────────────────────────────────────────────────────────────────
-const lightboxSrc = ref<string | null>(null);
-const openLightbox = (src: string) => {
-    lightboxSrc.value = src;
+// ─── Lightbox com navegação ───────────────────────────────────────────────────
+const lightboxIndex = ref<number | null>(null);
+const gallery = computed(() => props.project.media?.gallery ?? []);
+
+const openLightbox = (index: number) => {
+    lightboxIndex.value = index;
     document.body.style.overflow = 'hidden';
 };
 const closeLightbox = () => {
-    lightboxSrc.value = null;
+    lightboxIndex.value = null;
     document.body.style.overflow = '';
 };
+const lightboxPrev = () => {
+    if (lightboxIndex.value === null) {
+        return;
+    }
+
+    lightboxIndex.value =
+        (lightboxIndex.value - 1 + gallery.value.length) % gallery.value.length;
+};
+const lightboxNext = () => {
+    if (lightboxIndex.value === null) {
+        return;
+    }
+
+    lightboxIndex.value = (lightboxIndex.value + 1) % gallery.value.length;
+};
+const onLightboxKey = (e: KeyboardEvent) => {
+    if (lightboxIndex.value === null) {
+        return;
+    }
+
+    if (e.key === 'Escape') {
+        closeLightbox();
+    }
+
+    if (e.key === 'ArrowLeft') {
+        lightboxPrev();
+    }
+
+    if (e.key === 'ArrowRight') {
+        lightboxNext();
+    }
+};
+
+// ─── Galeria: featured (primeira) + grid (restante) ──────────────────────────
+const featuredImage = computed(() => gallery.value[0] ?? null);
+const gridImages = computed(() => gallery.value.slice(1));
 
 // ─── Copy link ────────────────────────────────────────────────────────────────
 const copied = ref(false);
@@ -44,9 +92,11 @@ const copyLink = async () => {
     setTimeout(() => (copied.value = false), 2000);
 };
 
-// ─── Reading progress ─────────────────────────────────────────────────────────
+// ─── Reading progress + sticky CTA ───────────────────────────────────────────
 const readingProgress = ref(0);
 const articleRef = ref<HTMLElement | null>(null);
+const showStickyCta = ref(false);
+const stickyClosed = ref(false);
 
 const updateProgress = () => {
     if (!articleRef.value) {
@@ -60,6 +110,7 @@ const updateProgress = () => {
         100,
         Math.max(0, (scrollTop / height) * 100),
     );
+    showStickyCta.value = readingProgress.value >= 80 && !stickyClosed.value;
 };
 
 // ─── Scroll reveal ────────────────────────────────────────────────────────────
@@ -67,6 +118,7 @@ let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
     window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('keydown', onLightboxKey);
 
     observer = new IntersectionObserver(
         (entries) => {
@@ -84,6 +136,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('scroll', updateProgress);
+    window.removeEventListener('keydown', onLightboxKey);
     observer?.disconnect();
     document.body.style.overflow = '';
 });
@@ -101,7 +154,7 @@ onUnmounted(() => {
             />
         </div>
 
-        <!-- Floating share actions — desktop -->
+        <!-- Floating actions — desktop -->
         <aside
             class="fixed top-1/2 right-6 z-40 hidden -translate-y-1/2 flex-col gap-2.5 xl:flex"
         >
@@ -151,11 +204,11 @@ onUnmounted(() => {
                 </button>
             </div>
 
-            <!-- ── Hero grid ───────────────────────────────────────────── -->
+            <!-- ── Hero grid (bug corrigido) ──────────────────────────── -->
             <div class="mx-auto mb-16 max-w-7xl px-6">
                 <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
-                    <!-- Left: title + meta strip (mobile) -->
-                    <div class="space-y-8 lg:col-span-7">
+                    <!-- Left: meta (mobile) + título + descrição — UMA única coluna -->
+                    <div class="space-y-6 lg:col-span-7">
                         <!-- Meta strip — mobile/tablet only -->
                         <div
                             class="grid grid-cols-2 gap-5 rounded-2xl border border-border bg-muted/30 p-5 sm:grid-cols-4 lg:hidden"
@@ -200,10 +253,8 @@ onUnmounted(() => {
                                 </a>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Left: title + meta strip (mobile) -->
-                    <div class="space-y-8 lg:col-span-7">
+                        <!-- Título + descrição -->
                         <div class="space-y-4">
                             <h1
                                 class="text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl"
@@ -216,6 +267,27 @@ onUnmounted(() => {
                             >
                                 {{ project.description }}
                             </p>
+                        </div>
+
+                        <!-- CTAs mobile (abaixo da descrição) -->
+                        <div class="flex flex-wrap gap-3 lg:hidden">
+                            <a
+                                v-if="project.url"
+                                :href="project.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:opacity-90"
+                            >
+                                Visitar website
+                                <ExternalLink class="h-4 w-4" />
+                            </a>
+                            <Link
+                                :href="contact().url"
+                                class="flex items-center gap-2 rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-bold transition-all hover:bg-muted"
+                            >
+                                Quero algo assim
+                                <ArrowRight class="h-4 w-4" />
+                            </Link>
                         </div>
                     </div>
 
@@ -291,7 +363,6 @@ onUnmounted(() => {
                                 </div>
                             </dl>
 
-                            <!-- Sidebar CTAs -->
                             <div
                                 class="mt-8 space-y-3 border-t border-border pt-6"
                             >
@@ -349,9 +420,9 @@ onUnmounted(() => {
                 </div>
             </div>
 
-            <!-- ── Screenshots gallery ────────────────────────────────── -->
+            <!-- ── Gallery: featured + grid ───────────────────────────── -->
             <div
-                v-if="project.media?.gallery"
+                v-if="gallery.length > 0"
                 class="reveal mx-auto mt-24 max-w-7xl px-6"
             >
                 <div class="mb-10 text-center">
@@ -368,41 +439,143 @@ onUnmounted(() => {
                     </p>
                 </div>
 
-                <!-- 1 screenshot: full-width; 2+: grid -->
+                <!-- Imagem destaque (primeira) -->
+                <button
+                    v-if="featuredImage"
+                    class="group relative mb-4 aspect-video w-full overflow-hidden rounded-3xl border border-border/50 bg-muted transition-all duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                    aria-label="Ver screenshot 1 em tamanho completo"
+                    @click="openLightbox(0)"
+                >
+                    <img
+                        :src="featuredImage.url"
+                        :alt="`${project.title} — destaque`"
+                        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    />
+                    <div
+                        class="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/10"
+                    >
+                        <span
+                            class="flex h-10 w-10 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100"
+                        >
+                            <ExternalLink class="h-4 w-4" />
+                        </span>
+                    </div>
+                </button>
+
+                <!-- Grid das demais screenshots -->
                 <div
-                    :class="
-                        project.media?.gallery.length === 1
-                            ? 'mx-auto max-w-4xl'
-                            : 'grid grid-cols-1 gap-6 md:grid-cols-2'
-                    "
+                    v-if="gridImages.length > 0"
+                    class="grid grid-cols-2 gap-4 md:grid-cols-4"
                 >
                     <button
-                        v-for="(img, i) in project.media?.gallery"
+                        v-for="(img, i) in gridImages"
                         :key="i"
-                        class="group relative aspect-video w-full overflow-hidden rounded-3xl border border-border/50 bg-muted transition-all duration-300 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-                        :aria-label="`Ver screenshot ${i + 1} em tamanho completo`"
-                        @click="openLightbox(img.url)"
+                        class="group relative aspect-video w-full overflow-hidden rounded-2xl border border-border/50 bg-muted transition-all duration-300 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                        :aria-label="`Ver screenshot ${i + 2} em tamanho completo`"
+                        @click="openLightbox(i + 1)"
                     >
                         <img
                             :src="img.url"
-                            :alt="`${project.title} — screenshot ${i + 1}`"
-                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            :alt="`${project.title} — screenshot ${i + 2}`"
+                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                         />
                         <div
-                            class="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/10"
+                            class="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/15"
                         >
                             <span
-                                class="flex h-10 w-10 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100"
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-foreground opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100"
                             >
-                                <ExternalLink class="h-4 w-4" />
+                                <ExternalLink class="h-3.5 w-3.5" />
                             </span>
                         </div>
                     </button>
                 </div>
             </div>
 
+            <!-- ── Author Card ─────────────────────────────────────────── -->
+            <div
+                v-if="project.author"
+                class="reveal mx-auto mt-16 max-w-3xl px-6"
+            >
+                <div
+                    class="flex flex-col items-center gap-5 rounded-3xl border border-border/60 bg-muted/60 p-7 sm:flex-row sm:items-start"
+                >
+                    <HoverCard>
+                        <HoverCardTrigger as-child>
+                            <Link
+                                :href="user.show(project.author.username)"
+                                class="shrink-0"
+                                aria-label="Perfil do autor"
+                            >
+                                <img
+                                    v-if="project.author.avatar_url"
+                                    :src="project.author.avatar_url"
+                                    :alt="project.author.name"
+                                    class="h-16 w-16 rounded-full object-cover ring-2 ring-border transition-opacity hover:opacity-80"
+                                    loading="lazy"
+                                />
+                            </Link>
+                        </HoverCardTrigger>
+
+                        <HoverCardContent class="w-72">
+                            <div class="flex items-start gap-4">
+                                <Avatar class="h-14 w-14 shrink-0">
+                                    <AvatarImage
+                                        :src="project.author.avatar_url || ''"
+                                        alt=""
+                                    />
+                                    <AvatarFallback>{{
+                                        project.author.name.charAt(0)
+                                    }}</AvatarFallback>
+                                </Avatar>
+                                <div class="min-w-0 space-y-1">
+                                    <h4 class="text-sm font-semibold">
+                                        {{ project.author.name }}
+                                    </h4>
+                                    <p
+                                        v-if="project.author.title"
+                                        class="text-xs text-muted-foreground"
+                                    >
+                                        {{ project.author.title }}
+                                    </p>
+                                    <Link
+                                        :href="
+                                            user.show(project.author.username)
+                                        "
+                                        class="text-xs text-primary hover:underline"
+                                    >
+                                        Ver perfil →
+                                    </Link>
+                                </div>
+                            </div>
+                        </HoverCardContent>
+                    </HoverCard>
+
+                    <div class="text-center sm:text-left">
+                        <p
+                            class="mb-1 text-xs tracking-widest text-muted-foreground uppercase"
+                        >
+                            Desenvolvido por
+                        </p>
+                        <Link
+                            :href="user.show(project.author.username)"
+                            class="text-lg font-bold hover:underline"
+                        >
+                            {{ project.author.name }}
+                        </Link>
+                        <p
+                            class="mt-1.5 text-sm leading-relaxed text-muted-foreground"
+                        >
+                            Desenvolvedor e fundador da mktcode. Apaixonado por
+                            transformar ideias em produtos digitais de alta
+                            performance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <!-- ── Bottom CTA ──────────────────────────────────────────── -->
-            <div class="reveal mx-auto mt-24 max-w-7xl px-6">
+            <div class="reveal mx-auto mt-16 max-w-7xl px-6">
                 <div
                     class="overflow-hidden rounded-[2rem] bg-primary px-8 py-14 text-primary-foreground md:px-14"
                 >
@@ -447,7 +620,47 @@ onUnmounted(() => {
             </div>
         </article>
 
-        <!-- ── Lightbox ──────────────────────────────────────────────────── -->
+        <!-- ── Sticky bottom CTA — aparece após 80% de scroll ──────────── -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-300"
+                enter-from-class="opacity-0 translate-y-4"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition-all duration-200"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-4"
+            >
+                <div
+                    v-if="showStickyCta"
+                    class="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 px-4"
+                >
+                    <div
+                        class="flex items-center gap-4 rounded-2xl border border-border bg-background/95 px-5 py-3 shadow-lg backdrop-blur-sm"
+                    >
+                        <p class="text-sm font-medium">Gostou do projeto?</p>
+                        <Link
+                            :href="contact().url"
+                            class="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
+                        >
+                            Falar agora
+                            <ArrowRight class="h-3.5 w-3.5" />
+                        </Link>
+                        <button
+                            class="flex h-6 w-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                            aria-label="Fechar"
+                            @click="
+                                stickyClosed = true;
+                                showStickyCta = false;
+                            "
+                        >
+                            <X class="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- ── Lightbox com navegação ────────────────────────────────────── -->
         <Teleport to="body">
             <Transition
                 enter-active-class="transition-all duration-300"
@@ -456,43 +669,62 @@ onUnmounted(() => {
                 leave-to-class="opacity-0"
             >
                 <div
-                    v-if="lightboxSrc"
+                    v-if="lightboxIndex !== null"
                     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
                     role="dialog"
                     aria-modal="true"
                     aria-label="Imagem ampliada"
                     @click.self="closeLightbox"
-                    @keydown.escape="closeLightbox"
                 >
+                    <!-- Fechar -->
                     <button
                         class="absolute top-5 right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
                         aria-label="Fechar"
                         @click="closeLightbox"
                     >
-                        <svg
-                            class="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            stroke-width="2"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
-                            />
-                        </svg>
+                        <X class="h-5 w-5" />
                     </button>
 
+                    <!-- Contador -->
+                    <div
+                        class="absolute top-5 left-1/2 -translate-x-1/2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white"
+                    >
+                        {{ (lightboxIndex ?? 0) + 1 }} / {{ gallery.length }}
+                    </div>
+
+                    <!-- Prev -->
+                    <button
+                        v-if="gallery.length > 1"
+                        class="absolute left-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                        aria-label="Anterior"
+                        @click="lightboxPrev"
+                    >
+                        <ChevronLeft class="h-5 w-5" />
+                    </button>
+
+                    <!-- Next -->
+                    <button
+                        v-if="gallery.length > 1"
+                        class="absolute right-5 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+                        aria-label="Próxima"
+                        @click="lightboxNext"
+                    >
+                        <ChevronRight class="h-5 w-5" />
+                    </button>
+
+                    <!-- Imagem -->
                     <Transition
-                        enter-active-class="transition-all duration-300"
+                        enter-active-class="transition-all duration-200"
                         enter-from-class="opacity-0 scale-95"
+                        enter-to-class="opacity-100 scale-100"
+                        mode="out-in"
                     >
                         <img
-                            v-if="lightboxSrc"
-                            :src="lightboxSrc"
-                            alt="Screenshot ampliada"
-                            class="max-h-[90vh] max-w-[95vw] rounded-2xl object-contain shadow-2xl"
+                            v-if="lightboxIndex !== null"
+                            :key="lightboxIndex"
+                            :src="gallery[lightboxIndex].url"
+                            :alt="`${project.title} — screenshot ${lightboxIndex + 1}`"
+                            class="max-h-[85vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
                         />
                     </Transition>
                 </div>
@@ -541,5 +773,38 @@ onUnmounted(() => {
     background: transparent;
     padding: 0;
     border-radius: 0;
+}
+
+/* ── Tabelas no prose ───────────────────────────────────── */
+:deep(.prose table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+}
+
+:deep(.prose table tbody tr:first-child td) {
+    background: hsl(var(--muted));
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--muted-foreground));
+}
+
+:deep(.prose table tbody tr:not(:first-child):nth-child(even) td) {
+    background: hsl(var(--muted) / 0.4);
+}
+
+:deep(.prose table td) {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.6);
+    vertical-align: top;
+}
+
+:deep(.prose table tbody tr:last-child td) {
+    border-bottom: none;
 }
 </style>

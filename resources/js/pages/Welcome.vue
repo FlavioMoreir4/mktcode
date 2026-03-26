@@ -22,13 +22,17 @@ import {
     LucideMessageSquare,
     LucidePhone,
     LucideX,
+    LucideUsers,
 } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
 import logo from '@/../images/logo.png';
 import ProjectCard from '@/components/marketing/ProjectCard.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
-import { projects as projectsStore } from '@/routes/public';
+import {
+    projects as projectsStore,
+    services as servicesRoute,
+} from '@/routes/public';
 import { store as inquiryStore } from '@/routes/public/inquiry';
 import type { SeoData, Service } from '@/types';
 import type { PublicProjectViewData } from '@/types/public';
@@ -58,6 +62,7 @@ const iconMap: Record<string, unknown> = {
     'bar-chart': LucideBarChart2,
     zap: LucideZap,
     package: LucidePackage,
+    users: LucideUsers,
 };
 const getIcon = (icon: string) => iconMap[icon] ?? LucideMonitor;
 
@@ -257,7 +262,6 @@ const submit = () => {
 
                     <!-- Hero visual -->
                     <div class="relative flex items-center justify-center">
-                        <!-- Desktop: floating logo -->
                         <div class="relative hidden lg:block">
                             <div
                                 class="absolute inset-0 scale-75 animate-pulse rounded-full bg-primary/15 blur-[100px]"
@@ -278,7 +282,6 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <!-- Mobile: tech cloud -->
                         <div class="w-full lg:hidden">
                             <div
                                 class="relative mx-auto flex max-w-sm flex-wrap justify-center gap-2 py-4"
@@ -346,14 +349,15 @@ const submit = () => {
                 </div>
 
                 <div
-                    class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                    class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
                 >
                     <div
                         v-for="(service, i) in services"
                         :key="service.title"
-                        class="reveal group rounded-3xl border border-border bg-card p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+                        class="reveal group flex flex-col rounded-3xl border border-border bg-card p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
                         :style="{ '--reveal-delay': `${i * 60}ms` }"
                     >
+                        <!-- Ícone -->
                         <div
                             class="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-muted transition-colors group-hover:border-primary/30 group-hover:bg-primary/5"
                         >
@@ -362,6 +366,8 @@ const submit = () => {
                                 class="h-6 w-6 text-primary"
                             />
                         </div>
+
+                        <!-- Título + descrição -->
                         <h3 class="mb-2 text-lg font-bold">
                             {{ service.title }}
                         </h3>
@@ -370,28 +376,54 @@ const submit = () => {
                         >
                             {{ service.description }}
                         </p>
+
+                        <!-- Features principais -->
                         <ul
                             v-if="service.features?.length"
-                            class="mt-4 space-y-1.5"
+                            class="mt-4 grow space-y-1.5"
                         >
                             <li
                                 v-for="feature in service.features.slice(0, 3)"
                                 :key="feature.item"
-                                class="flex items-center gap-2 text-xs text-muted-foreground"
+                                class="flex items-start gap-2 text-xs text-muted-foreground"
                             >
                                 <LucideCheckCircle2
-                                    class="h-3.5 w-3.5 shrink-0 text-primary/60"
+                                    class="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/60"
                                 />
                                 {{ feature.item }}
                             </li>
                         </ul>
+
+                        <!-- Ideal para — qualificador de lead -->
+                        <div
+                            v-if="service.ideal_for"
+                            class="mt-5 rounded-xl bg-muted/60 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground"
+                        >
+                            <span
+                                class="mb-1 block text-[10px] font-bold tracking-widest text-primary/70 uppercase"
+                            >
+                                Ideal para
+                            </span>
+                            {{ service.ideal_for }}
+                        </div>
+
+                        <!-- CTA -->
+                        <Link
+                            :href="servicesRoute().url"
+                            class="mt-5 flex items-center gap-1 text-xs font-semibold text-primary/70 transition-colors hover:text-primary"
+                        >
+                            Saiba mais
+                            <LucideArrowRight
+                                class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                            />
+                        </Link>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- ══════════════════════════════════════════════
-             DIFFERENTIALS
+             DIFFERENTIALS — grid com bordas explícitas (fix divide-x)
         ══════════════════════════════════════════════ -->
         <section class="border-y border-border bg-muted/20 px-6 py-24 md:py-32">
             <div class="mx-auto max-w-7xl">
@@ -406,15 +438,24 @@ const submit = () => {
                     </h2>
                 </div>
 
-                <div
-                    class="grid grid-cols-1 gap-0 divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0"
-                >
+                <!--
+                    Fix: divide-x não funciona em CSS Grid.
+                    Solução: bordas explícitas por posição no grid 2×2.
+                    - item par (0, 2): border-right no md
+                    - itens 0 e 1 (primeira linha): border-bottom no md
+                -->
+                <div class="grid grid-cols-1 md:grid-cols-2">
                     <div
                         v-for="(diff, i) in differentials"
                         :key="diff.title"
-                        class="reveal group flex gap-6 p-8 transition-colors hover:bg-muted/40 md:p-10"
+                        class="reveal group flex gap-6 border-b border-border p-8 transition-colors last:border-b-0 hover:bg-muted/40 md:p-10"
+                        :class="{
+                            'md:border-r md:border-b': i === 0,
+                            'md:border-b': i === 1,
+                            'md:border-r md:border-b-0': i === 2,
+                            'md:border-b-0': i === 3,
+                        }"
                         :style="{ '--reveal-delay': `${i * 80}ms` }"
-                        :class="{ 'md:border-b md:border-border': i < 2 }"
                     >
                         <span
                             class="mt-0.5 shrink-0 text-5xl font-bold text-border transition-colors group-hover:text-primary/20 md:text-6xl"
@@ -435,7 +476,7 @@ const submit = () => {
         </section>
 
         <!-- ══════════════════════════════════════════════
-             PROJECTS
+             PROJECTS — featured em col-span-2
         ══════════════════════════════════════════════ -->
         <section id="projetos" class="px-6 py-24 md:py-32">
             <div class="mx-auto max-w-7xl">
@@ -473,14 +514,31 @@ const submit = () => {
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <div
-                        v-for="(project, i) in props.projects"
-                        :key="i"
-                        class="reveal"
-                        :style="{ '--reveal-delay': `${i * 80}ms` }"
-                    >
-                        <ProjectCard :project="project" :with-cover="false" />
-                    </div>
+                    <template v-for="(project, i) in props.projects" :key="i">
+                        <!-- Projeto featured: ocupa toda a largura -->
+                        <div
+                            v-if="project.featured"
+                            class="reveal lg:col-span-2"
+                            :style="{ '--reveal-delay': `${i * 80}ms` }"
+                        >
+                            <ProjectCard
+                                :project="project"
+                                :with-cover="false"
+                                variant="featured"
+                            />
+                        </div>
+                        <!-- Projetos regulares -->
+                        <div
+                            v-else
+                            class="reveal"
+                            :style="{ '--reveal-delay': `${i * 80}ms` }"
+                        >
+                            <ProjectCard
+                                :project="project"
+                                :with-cover="false"
+                            />
+                        </div>
+                    </template>
                 </div>
             </div>
         </section>
@@ -527,7 +585,6 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <!-- Credential strip -->
                         <div
                             class="mt-14 grid grid-cols-2 gap-6 border-t border-white/10 pt-12 sm:grid-cols-4"
                         >
@@ -591,6 +648,7 @@ const submit = () => {
                         </p>
 
                         <div class="space-y-4">
+                            <!-- Telegram — canal preferencial com badge -->
                             <a
                                 href="https://t.me/flaviomoreir4"
                                 target="_blank"
@@ -603,9 +661,19 @@ const submit = () => {
                                     <LucideSend class="h-5 w-5" />
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="font-bold">Telegram</h3>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-bold">Telegram</h3>
+                                        <span
+                                            class="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-green-600 dark:text-green-400"
+                                        >
+                                            <span
+                                                class="h-1.5 w-1.5 rounded-full bg-green-500"
+                                            />
+                                            Mais rápido
+                                        </span>
+                                    </div>
                                     <p class="text-sm text-muted-foreground">
-                                        @flaviomoreir4 · Resposta mais rápida
+                                        @flaviomoreir4
                                     </p>
                                 </div>
                                 <LucideArrowRight
