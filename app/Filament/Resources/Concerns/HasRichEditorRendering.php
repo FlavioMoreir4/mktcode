@@ -65,7 +65,7 @@ trait HasRichEditorRendering
                         'light' => Theme::GithubLight,
                     ],
                 ])
-                ->linkHeadings(level: 2, wrap: false)
+                // ->linkHeadings(level: 2, wrap: true)
                 ->toHtml();
         }
 

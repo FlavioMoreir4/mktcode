@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import hljs from 'highlight.js';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import SeoHead from '@/components/SeoHead.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,6 +9,7 @@ import {
     HoverCardContent,
     HoverCardTrigger,
 } from '@/components/ui/hover-card';
+import { useHighlight } from '@/composables/useHighlight';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import blog from '@/routes/public/blog';
@@ -47,6 +47,8 @@ const hiddenTagCount = computed(() =>
 );
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+useHighlight();
+
 const getTagName = (tag: any): string => {
     if (typeof tag.name === 'string') {
         return tag.name;
@@ -169,7 +171,6 @@ const shareOnX = () => {
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(() => {
-    hljs.highlightAll();
     window.addEventListener('scroll', updateProgress, { passive: true });
     buildToc();
     initTocObserver();
@@ -397,7 +398,7 @@ onUnmounted(() => {
                     <!-- Post Body -->
                     <div
                         data-post-body
-                        class="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:underline prose-blockquote:border-primary/50 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-code:rounded-md prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:rounded-2xl prose-pre:border prose-pre:border-border prose-img:rounded-2xl prose-img:shadow-md prose-hr:border-border"
+                        class="prose prose-lg max-w-prose dark:prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary hover:prose-a:underline prose-blockquote:border-primary/50 prose-blockquote:text-muted-foreground prose-blockquote:not-italic prose-code:rounded-md prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:rounded-2xl prose-pre:border prose-pre:border-border prose-img:rounded-2xl prose-img:shadow-md prose-hr:border-border"
                     >
                         <div v-html="post.body" />
                     </div>

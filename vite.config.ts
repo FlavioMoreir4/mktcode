@@ -37,6 +37,14 @@ export default defineConfig({
         visualizer(),
     ],
     build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor-vue': ['vue', '@inertiajs/vue3'],
+                    'vendor-editor': ['highlight.js'],
+                },
+            },
+        },
         sourcemap: true,
     },
 });

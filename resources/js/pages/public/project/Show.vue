@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import hljs from 'highlight.js';
 import {
     ExternalLink,
     Calendar,
@@ -12,8 +11,8 @@ import {
     Check,
 } from 'lucide-vue-next';
 import { onMounted, onUnmounted, ref } from 'vue';
-
 import SeoHead from '@/components/SeoHead.vue';
+import { useHighlight } from '@/composables/useHighlight';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { projects, contact } from '@/routes/public';
 import type { PublicProjectViewData } from '@/types/public';
@@ -23,6 +22,8 @@ interface Props {
 }
 
 defineProps<Props>();
+
+useHighlight();
 
 // ─── Lightbox ─────────────────────────────────────────────────────────────────
 const lightboxSrc = ref<string | null>(null);
@@ -65,8 +66,6 @@ const updateProgress = () => {
 let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
-    hljs.highlightAll();
-
     window.addEventListener('scroll', updateProgress, { passive: true });
 
     observer = new IntersectionObserver(

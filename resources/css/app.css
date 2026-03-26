@@ -113,10 +113,19 @@
     .phiki span,
     .phiki code {
         /* color: var(--phiki-dark-color) !important; */
-        background-color: var(--phiki-background) !important;
+        /* background-color: var(--phiki-background) !important; */
         /* font-style: var(--phiki-dark-font-style) !important; */
         /* font-weight: var(--phiki-dark-font-weight) !important; */
         /* text-decoration: var(--phiki-dark-text-decoration) !important; */
+    }
+
+    .prose pre {
+        @apply p-0;
+        /* Apply standard padding utilities to pre inside prose */
+    }
+
+    .prose-pre {
+        @apply overflow-x-auto rounded-2xl border border-border;
     }
 }
 
