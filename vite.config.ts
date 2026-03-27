@@ -38,11 +38,20 @@ export default defineConfig({
     ],
     build: {
         rollupOptions: {
+            external: [],
             output: {
-                manualChunks: {
-                    'vendor-vue': ['vue', '@inertiajs/vue3'],
-                    'vendor-editor': ['highlight.js'],
-                },
+                // manualChunks: {
+                //     // 'vendor-vue': ['vue', '@inertiajs/vue3'],
+                //     'vendor-editor': ['highlight.js'],
+                // },
+                // manualChunks(id) {
+                //     if (id.includes('highlight.js')) {
+                //         return 'vendor-editor';
+                //     }
+                //     if (id.includes('vue') || id.includes('@inertiajs/vue3')) {
+                //         return 'vendor-vue';
+                //     }
+                // },
             },
         },
         sourcemap: true,
