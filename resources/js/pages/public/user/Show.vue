@@ -2,6 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     ArrowRight,
+    ArrowUpRight,
     Clock,
     Globe,
     Layers,
@@ -55,20 +56,14 @@ const props = defineProps<{
 }>();
 
 // ─── Social: Simple Icons mapping ────────────────────────────────────────────
-// Chave = platform string vinda do backend (lowercase, normalizada)
 const socialMap: Record<string, { icon: unknown; label: string }> = {
-    // Dev / código
     github: { icon: GitHubIcon, label: 'GitHub' },
     gitlab: { icon: GitLabIcon, label: 'GitLab' },
     bitbucket: { icon: BitbucketIcon, label: 'Bitbucket' },
     npm: { icon: NpmIcon, label: 'npm' },
     stackoverflow: { icon: StackOverflowIcon, label: 'Stack Overflow' },
-
-    // Profissional
     linkedin: { icon: Globe, label: 'LinkedIn' },
     producthunt: { icon: ProductHuntIcon, label: 'Product Hunt' },
-
-    // Redes sociais
     x: { icon: XIcon, label: 'X' },
     twitter: { icon: XIcon, label: 'Twitter' },
     instagram: { icon: InstagramIcon, label: 'Instagram' },
@@ -80,18 +75,12 @@ const socialMap: Record<string, { icon: unknown; label: string }> = {
     pinterest: { icon: PinterestIcon, label: 'Pinterest' },
     tiktok: { icon: TikTokIcon, label: 'TikTok' },
     reddit: { icon: RedditIcon, label: 'Reddit' },
-
-    // Vídeo / streaming / áudio
     youtube: { icon: YouTubeIcon, label: 'YouTube' },
     twitch: { icon: TwitchIcon, label: 'Twitch' },
     spotify: { icon: SpotifyIcon, label: 'Spotify' },
-
-    // Comunidade / chat
     discord: { icon: DiscordIcon, label: 'Discord' },
     telegram: { icon: TelegramIcon, label: 'Telegram' },
     whatsapp: { icon: WhatsAppIcon, label: 'WhatsApp' },
-
-    // Blog / escrita / design
     medium: { icon: MediumIcon, label: 'Medium' },
     devto: { icon: DevDottoIcon, label: 'Dev.to' },
     'dev.to': { icon: DevDottoIcon, label: 'Dev.to' },
@@ -100,21 +89,41 @@ const socialMap: Record<string, { icon: unknown; label: string }> = {
     dribbble: { icon: DribbbleIcon, label: 'Dribbble' },
     behance: { icon: BehanceIcon, label: 'Behance' },
     figma: { icon: FigmaIcon, label: 'Figma' },
-
-    // Apoio / monetização
     patreon: { icon: PatreonIcon, label: 'Patreon' },
     kofi: { icon: KoFiIcon, label: 'Ko-fi' },
     'ko-fi': { icon: KoFiIcon, label: 'Ko-fi' },
 };
 
-// Normaliza a string vinda do backend antes de buscar no map
 const normalizePlatform = (platform: string) =>
     platform.toLowerCase().replace(/[\s_]/g, '');
 
 const getSocialEntry = (platform: string) =>
     socialMap[normalizePlatform(platform)] ?? null;
 
-// ─── Bio: extrai só o primeiro parágrafo ──────────────────────────────────────
+// ─── Três zonas de social links ───────────────────────────────────────────────
+// Zona 1: botões de destaque no header (ao lado do botão "Contratar")
+const featuredLinks = computed(
+    () => props.user.social?.filter((l) => l.featured) ?? [],
+);
+
+// Zona 2: pills inline (não-featured E não-stacked)
+const pillLinks = computed(
+    () =>
+        props.user.social?.filter((l) => !l.featured && !l.stack_on_mobile) ??
+        [],
+);
+
+// Zona 3: links empilhados — ocultos no mobile do bloco de pills, exibidos em lista própria
+const stackedLinks = computed(
+    () =>
+        props.user.social?.filter((l) => !l.featured && l.stack_on_mobile) ??
+        [],
+);
+
+const hasPillLinks = computed(() => pillLinks.value.length > 0);
+const hasStackedLinks = computed(() => stackedLinks.value.length > 0);
+
+// ─── Bio ──────────────────────────────────────────────────────────────────────
 const bioFirstParagraph = computed(() => {
     if (!props.user.bio) {
         return null;
@@ -126,16 +135,6 @@ const bioFirstParagraph = computed(() => {
 });
 
 // ─── Has content ──────────────────────────────────────────────────────────────
-const hasSocial = computed(() => {
-    const s = props.user.social;
-
-    if (!s) {
-        return false;
-    }
-
-    return Array.isArray(s) ? s.length > 0 : Object.keys(s).length > 0;
-});
-
 const hasProjects = computed(
     () => (props.user.projects?.data?.length ?? 0) > 0,
 );
@@ -190,6 +189,7 @@ onUnmounted(() => observer?.disconnect());
              COVER + IDENTITY
         ══════════════════════════════════════════════ -->
         <section class="relative pt-20">
+            <!-- Cover -->
             <div class="relative h-52 w-full overflow-hidden bg-muted md:h-72">
                 <img
                     v-if="user.cover"
@@ -202,141 +202,204 @@ onUnmounted(() => observer?.disconnect());
                     v-else
                     class="h-full w-full bg-gradient-to-br from-primary/20 via-primary/5 to-transparent"
                 />
+                <!-- Gradiente mais suave → apenas bottom fade, sem cortar o cover -->
                 <div
-                    class="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent"
+                    class="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"
                 />
             </div>
 
             <div class="mx-auto max-w-7xl px-6">
                 <div class="relative -mt-16 md:-mt-24">
-                    <!-- Avatar + CTAs -->
+                    <!-- ── Linha: Avatar + CTAs ──────────────────────────── -->
                     <div class="flex items-end justify-between gap-4">
-                        <div
-                            class="h-32 w-32 overflow-hidden rounded-3xl border-4 border-background bg-muted shadow-2xl md:h-44 md:w-44"
-                        >
-                            <img
-                                v-if="user.avatar"
-                                :src="user.avatar"
-                                :alt="user.name"
-                                class="h-full w-full object-cover"
-                            />
+                        <!-- Avatar -->
+                        <div class="relative shrink-0">
                             <div
-                                v-else
-                                class="flex h-full w-full items-center justify-center bg-primary/10 text-5xl font-bold text-primary"
+                                class="h-28 w-28 overflow-hidden rounded-2xl border-4 border-background bg-muted shadow-xl ring-1 ring-border/50 md:h-40 md:w-40"
                             >
-                                {{ user.name.charAt(0) }}
+                                <img
+                                    v-if="user.avatar"
+                                    :src="user.avatar"
+                                    :alt="user.name"
+                                    class="h-full w-full object-cover"
+                                />
+                                <div
+                                    v-else
+                                    class="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary"
+                                >
+                                    {{ user.name.charAt(0) }}
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 pb-3">
-                            <a
-                                v-if="
-                                    user.social?.find(
-                                        (l) =>
-                                            normalizePlatform(l.platform) ===
-                                            'github',
-                                    )
-                                "
-                                :href="
-                                    user.social.find(
-                                        (l) =>
-                                            normalizePlatform(l.platform) ===
-                                            'github',
-                                    )!.url
-                                "
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label="GitHub"
-                                class="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-bold transition-all hover:bg-muted"
+                        <!-- CTAs: featured links + botão Contratar -->
+                        <div class="flex items-center gap-2.5 pb-2">
+                            <!-- Zona 1: featured links -->
+                            <template
+                                v-for="link in featuredLinks"
+                                :key="link.platform"
                             >
-                                <component
-                                    :is="getSocialEntry('github').icon"
-                                    class="h-4 w-4"
-                                />
-                                <span class="hidden sm:inline">GitHub</span>
-                            </a>
+                                <a
+                                    :href="link.url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    :aria-label="
+                                        getSocialEntry(link.platform)?.label ??
+                                        link.platform
+                                    "
+                                    class="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary active:scale-[0.97]"
+                                >
+                                    <component
+                                        :is="
+                                            getSocialEntry(link.platform)
+                                                ?.icon ?? Globe
+                                        "
+                                        class="h-4 w-4 shrink-0"
+                                    />
+                                    <span
+                                        v-if="!link.icon_only"
+                                        class="hidden sm:inline"
+                                    >
+                                        {{
+                                            getSocialEntry(link.platform)
+                                                ?.label ?? link.platform
+                                        }}
+                                    </span>
+                                </a>
+                            </template>
+
+                            <!-- Botão principal -->
                             <Link
                                 :href="contact().url"
-                                class="rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+                                class="rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground shadow-md transition-all hover:opacity-90 hover:shadow-primary/25 active:scale-[0.97]"
                             >
                                 Contratar
                             </Link>
                         </div>
                     </div>
 
-                    <!-- Nome + título + localização -->
-                    <div class="mt-5">
-                        <h1
-                            class="text-3xl font-bold tracking-tight md:text-4xl"
-                        >
-                            {{ user.name }}
-                        </h1>
-
-                        <div
-                            class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"
-                        >
-                            <span
-                                v-if="user.title"
-                                class="font-semibold text-primary/80"
-                                >{{ user.title }}</span
+                    <!-- ── Identidade ─────────────────────────────────────── -->
+                    <div class="mt-5 space-y-4">
+                        <!-- Nome + título + localização -->
+                        <div>
+                            <h1
+                                class="text-3xl font-bold tracking-tight md:text-4xl"
                             >
-                            <span
-                                v-if="user.location"
-                                class="flex items-center gap-1.5 text-muted-foreground"
+                                {{ user.name }}
+                            </h1>
+                            <div
+                                class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
                             >
-                                <MapPin class="h-3.5 w-3.5 shrink-0" />
-                                {{ user.location }}
-                            </span>
+                                <span
+                                    v-if="user.title"
+                                    class="font-semibold text-primary/80"
+                                    >{{ user.title }}</span
+                                >
+                                <span
+                                    v-if="user.title && user.location"
+                                    class="text-border"
+                                    >·</span
+                                >
+                                <span
+                                    v-if="user.location"
+                                    class="flex items-center gap-1.5 text-muted-foreground"
+                                >
+                                    <MapPin class="h-3.5 w-3.5 shrink-0" />
+                                    {{ user.location }}
+                                </span>
+                            </div>
                         </div>
 
-                        <!-- ── Social pills com Simple Icons ───────── -->
-                        <div v-if="hasSocial" class="mt-4 flex flex-wrap gap-2">
+                        <!-- ── Zona 2: Pills inline (não-featured, não-stacked) ── -->
+                        <div v-if="hasPillLinks" class="flex flex-wrap gap-2">
                             <template
-                                v-for="link in user.social"
+                                v-for="link in pillLinks"
                                 :key="link.platform"
                             >
-                                <!-- Plataforma reconhecida -->
                                 <a
-                                    v-if="getSocialEntry(link.platform)"
                                     :href="link.url"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     :aria-label="
-                                        getSocialEntry(link.platform)!.label
+                                        getSocialEntry(link.platform)?.label ??
+                                        link.platform
                                     "
                                     :title="
-                                        getSocialEntry(link.platform)!.label
+                                        getSocialEntry(link.platform)?.label ??
+                                        link.platform
                                     "
-                                    class="group flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                                    class="group flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary active:scale-[0.96]"
                                 >
                                     <component
                                         :is="
-                                            getSocialEntry(link.platform)!.icon
+                                            getSocialEntry(link.platform)
+                                                ?.icon ?? Globe
                                         "
                                         class="h-3.5 w-3.5 shrink-0"
                                     />
-                                    {{ getSocialEntry(link.platform)!.label }}
-                                </a>
-
-                                <!-- Fallback: plataforma desconhecida → Globe do Lucide -->
-                                <a
-                                    v-else
-                                    :href="link.url"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    :aria-label="link.platform"
-                                    :title="link.platform"
-                                    class="group flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
-                                >
-                                    <Globe class="h-3.5 w-3.5 shrink-0" />
-                                    {{ link.platform }}
+                                    <!-- icon_only: sem label em nenhuma viewport -->
+                                    <span
+                                        v-if="!link.icon_only"
+                                        class="hidden sm:inline"
+                                    >
+                                        {{
+                                            getSocialEntry(link.platform)
+                                                ?.label ?? link.platform
+                                        }}
+                                    </span>
                                 </a>
                             </template>
                         </div>
 
+                        <!-- ── Zona 3: Links empilhados (stack_on_mobile) ────── -->
+                        <!--
+                            Esses links ficam FORA dos pills e são exibidos como
+                            linhas clicáveis — útil para links "importantes demais
+                            para serem só um ícone" (ex: LinkedIn, site pessoal).
+                            Em desktop aparecem como lista compacta;
+                            em mobile ocupam linha inteira com boa área de toque.
+                        -->
+                        <div
+                            v-if="hasStackedLinks"
+                            class="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:gap-2"
+                        >
+                            <a
+                                v-for="link in stackedLinks"
+                                :key="link.platform"
+                                :href="link.url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                :aria-label="
+                                    getSocialEntry(link.platform)?.label ??
+                                    link.platform
+                                "
+                                class="group flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary active:scale-[0.98] sm:w-auto sm:justify-start sm:rounded-full sm:px-3 sm:py-1.5 sm:text-xs"
+                            >
+                                <span
+                                    class="flex items-center gap-2.5 sm:gap-1.5"
+                                >
+                                    <component
+                                        :is="
+                                            getSocialEntry(link.platform)
+                                                ?.icon ?? Globe
+                                        "
+                                        class="h-4 w-4 shrink-0 sm:h-3.5 sm:w-3.5"
+                                    />
+                                    {{
+                                        getSocialEntry(link.platform)?.label ??
+                                        link.platform
+                                    }}
+                                </span>
+                                <!-- Seta apenas no mobile (linha inteira) -->
+                                <ArrowUpRight
+                                    class="h-4 w-4 shrink-0 text-muted-foreground/40 transition-all group-hover:text-primary sm:hidden"
+                                />
+                            </a>
+                        </div>
+
                         <!-- Stats -->
                         <div
-                            class="mt-6 flex flex-wrap gap-6 border-t border-border pt-6"
+                            class="flex flex-wrap gap-6 border-t border-border pt-5"
                         >
                             <div
                                 v-for="stat in stats"
@@ -347,12 +410,14 @@ onUnmounted(() => observer?.disconnect());
                                     :is="stat.icon"
                                     class="h-4 w-4 text-muted-foreground"
                                 />
-                                <span class="text-lg leading-none font-bold">{{
-                                    stat.value
-                                }}</span>
-                                <span class="text-sm text-muted-foreground">{{
-                                    stat.label
-                                }}</span>
+                                <span
+                                    class="text-lg leading-none font-bold tabular-nums"
+                                >
+                                    {{ stat.value }}
+                                </span>
+                                <span class="text-sm text-muted-foreground">
+                                    {{ stat.label }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -363,14 +428,15 @@ onUnmounted(() => observer?.disconnect());
         <!-- ══════════════════════════════════════════════
              MAIN CONTENT
         ══════════════════════════════════════════════ -->
-        <section class="pt-12 pb-32">
+        <section class="pt-14 pb-32">
             <div class="mx-auto max-w-7xl px-6">
                 <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
-                    <!-- Sidebar -->
+                    <!-- ── Sidebar ───────────────────────────────────────── -->
                     <aside class="space-y-8 lg:col-span-4">
+                        <!-- Bio -->
                         <div class="reveal">
                             <h3
-                                class="mb-4 text-xs font-bold tracking-widest text-muted-foreground uppercase"
+                                class="mb-3 text-xs font-bold tracking-widest text-muted-foreground uppercase"
                             >
                                 Sobre
                             </h3>
@@ -387,25 +453,16 @@ onUnmounted(() => observer?.disconnect());
                             </p>
                         </div>
 
-                        <div class="reveal">
+                        <!-- Stack -->
+                        <div class="reveal" v-if="user.skills">
                             <h3
-                                class="mb-4 text-xs font-bold tracking-widest text-muted-foreground uppercase"
+                                class="mb-3 text-xs font-bold tracking-widest text-muted-foreground uppercase"
                             >
                                 Stack principal
                             </h3>
                             <div class="flex flex-wrap gap-2">
                                 <span
-                                    v-for="tech in [
-                                        'Laravel',
-                                        'PHP 8.2+',
-                                        'Vue 3',
-                                        'Inertia.js',
-                                        'TypeScript',
-                                        'Tailwind CSS',
-                                        'MySQL',
-                                        'Redis',
-                                        'Docker',
-                                    ]"
+                                    v-for="tech in user.skills?.split(',')"
                                     :key="tech"
                                     class="rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-foreground"
                                 >
@@ -414,12 +471,24 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </div>
 
+                        <!-- CTA card -->
                         <div
                             class="reveal rounded-2xl border border-border bg-card p-6"
                         >
-                            <h3 class="mb-1 font-bold">
-                                Disponível para projetos
-                            </h3>
+                            <div class="mb-1 flex items-center gap-2">
+                                <!-- Indicador de disponibilidade -->
+                                <span class="relative flex h-2 w-2">
+                                    <span
+                                        class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+                                    />
+                                    <span
+                                        class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"
+                                    />
+                                </span>
+                                <h3 class="font-bold">
+                                    Disponível para projetos
+                                </h3>
+                            </div>
                             <p
                                 class="mb-5 text-sm leading-relaxed text-muted-foreground"
                             >
@@ -436,7 +505,7 @@ onUnmounted(() => observer?.disconnect());
                         </div>
                     </aside>
 
-                    <!-- Feed -->
+                    <!-- ── Feed ──────────────────────────────────────────── -->
                     <div class="space-y-16 lg:col-span-8">
                         <!-- Projetos -->
                         <div v-if="hasProjects" class="reveal">
@@ -455,7 +524,7 @@ onUnmounted(() => observer?.disconnect());
                                 </Link>
                             </div>
 
-                            <!-- Featured -->
+                            <!-- Featured project -->
                             <div v-if="featuredProject" class="mb-5">
                                 <div
                                     class="reveal group relative overflow-hidden rounded-3xl border border-border bg-card p-7 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
@@ -463,13 +532,15 @@ onUnmounted(() => observer?.disconnect());
                                     <div class="mb-2 flex items-center gap-2">
                                         <span
                                             class="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-primary uppercase"
-                                            >Destaque</span
                                         >
+                                            Destaque
+                                        </span>
                                         <span
                                             v-if="featuredProject.year"
                                             class="text-xs text-muted-foreground"
-                                            >{{ featuredProject.year }}</span
                                         >
+                                            {{ featuredProject.year }}
+                                        </span>
                                     </div>
                                     <h3
                                         class="mb-2 text-xl font-bold tracking-tight"
@@ -522,7 +593,7 @@ onUnmounted(() => observer?.disconnect());
                                 </div>
                             </div>
 
-                            <!-- Regulares -->
+                            <!-- Regular projects -->
                             <div
                                 v-if="regularProjects.length > 0"
                                 class="grid grid-cols-1 gap-5 sm:grid-cols-2"
@@ -592,13 +663,14 @@ onUnmounted(() => observer?.disconnect());
                                                     :datetime="
                                                         post.published_at ?? ''
                                                     "
-                                                    >{{
+                                                >
+                                                    {{
                                                         formatDate(
                                                             post.published_at ??
                                                                 '',
                                                         )
-                                                    }}</time
-                                                >
+                                                    }}
+                                                </time>
                                                 <span class="text-border"
                                                     >·</span
                                                 >
@@ -633,6 +705,7 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </div>
 
+                        <!-- Estado vazio -->
                         <div
                             v-if="!hasProjects && !hasPosts"
                             class="reveal flex flex-col items-center gap-4 rounded-3xl border border-dashed border-border py-20 text-center"
@@ -646,7 +719,9 @@ onUnmounted(() => observer?.disconnect());
             </div>
         </section>
 
-        <!-- Bottom CTA -->
+        <!-- ══════════════════════════════════════════════
+             BOTTOM CTA
+        ══════════════════════════════════════════════ -->
         <div class="reveal mx-6 mb-24">
             <div
                 class="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-primary px-8 py-14 text-primary-foreground md:px-14"

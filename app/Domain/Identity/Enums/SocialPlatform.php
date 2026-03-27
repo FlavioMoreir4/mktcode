@@ -54,6 +54,43 @@ enum SocialPlatform: string
     // fallback
     case Website = 'website';
 
+    public function domain(): ?string
+    {
+        return match ($this) {
+            self::GitHub => 'github.com',
+            self::GitLab => 'gitlab.com',
+            self::Bitbucket => 'bitbucket.org',
+            self::Npm => 'npmjs.com',
+            self::StackOverflow => 'stackoverflow.com',
+            self::LinkedIn => 'linkedin.com',
+            self::ProductHunt => 'producthunt.com',
+            self::X, self::Twitter => 'x.com',
+            self::Instagram => 'instagram.com',
+            self::Facebook => 'facebook.com',
+            self::Threads => 'threads.net',
+            self::Bluesky => 'bsky.app',
+            self::Mastodon => 'mastodon.social',
+            self::TikTok => 'tiktok.com',
+            self::Reddit => 'reddit.com',
+            self::YouTube => 'youtube.com',
+            self::Twitch => 'twitch.tv',
+            self::Spotify => 'spotify.com',
+            self::Medium => 'medium.com',
+            self::DevTo => 'dev.to',
+            self::Hashnode => 'hashnode.com',
+            self::Substack => 'substack.com',
+            self::Dribbble => 'dribbble.com',
+            self::Behance => 'behance.net',
+            self::Figma => 'figma.com',
+            self::Discord => 'discord.com',
+            self::Telegram => 'telegram.org',
+            self::WhatsApp => 'whatsapp.com',
+            self::Patreon => 'patreon.com',
+            self::KoFi => 'ko-fi.com',
+            self::Website => null, // Website é genérico
+        };
+    }
+
     // Placeholder
     public function placeholder(): string
     {

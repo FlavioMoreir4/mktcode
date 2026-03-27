@@ -15,6 +15,7 @@ final readonly class PublicProfileViewData implements PublicPayloadData
      * @param  list<array<string, mixed>>  $projects
      * @param  list<array<string, mixed>>  $posts
      * @param  array<string, mixed>|null  $social
+     * @param  string|null  $skills
      */
     public function __construct(
         public string $name,
@@ -25,6 +26,7 @@ final readonly class PublicProfileViewData implements PublicPayloadData
         public string $avatar,
         public string $cover,
         public ?array $social,
+        public string $skills,
         public array $projects,
         public array $posts,
     ) {}
@@ -40,6 +42,7 @@ final readonly class PublicProfileViewData implements PublicPayloadData
             avatar: $user->profile_photo_url,
             cover: $user->cover_photo_url,
             social: $user->social_links,
+            skills: $user->skills,
             projects: $user->relationLoaded('projects')
                 ? $user->projects->map(fn ($project): array => PublicProjectViewData::fromModel($project)->toArray())->all()
                 : [],
@@ -63,6 +66,7 @@ final readonly class PublicProfileViewData implements PublicPayloadData
             'avatar' => $this->avatar,
             'cover' => $this->cover,
             'social' => $this->social,
+            'skills' => $this->skills,
             'projects' => [
                 'data' => $this->projects,
             ],

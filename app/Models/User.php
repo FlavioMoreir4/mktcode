@@ -53,6 +53,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         'bio',
         'location',
         'social_links',
+        'skills',
     ];
 
     /**
@@ -90,6 +91,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'social_links' => 'array',
+            // 'skills' => 'array',
         ];
     }
 

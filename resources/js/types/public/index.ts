@@ -1,5 +1,3 @@
-
-
 export interface SeoData {
     title: string | null;
     description: string | null;
@@ -11,6 +9,9 @@ export interface SeoData {
 export interface SocialLink {
     platform: string;
     url: string;
+    featured: boolean;
+    icon_only: boolean;
+    stack_on_mobile: boolean;
 }
 
 export interface PublicMediaData {
@@ -80,6 +81,7 @@ export interface PublicProfileViewData {
     avatar: string;
     cover: string;
     social: SocialLink[] | null;
+    skills: string | null;
     projects: { data: PublicProjectViewData[] };
     posts: { data: PublicPostSummaryData[] };
 }
