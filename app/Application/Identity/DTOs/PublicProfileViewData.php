@@ -15,7 +15,6 @@ final readonly class PublicProfileViewData implements PublicPayloadData
      * @param  list<array<string, mixed>>  $projects
      * @param  list<array<string, mixed>>  $posts
      * @param  array<string, mixed>|null  $social
-     * @param  string|null  $skills
      */
     public function __construct(
         public string $name,
@@ -26,7 +25,7 @@ final readonly class PublicProfileViewData implements PublicPayloadData
         public string $avatar,
         public string $cover,
         public ?array $social,
-        public string $skills,
+        public ?string $skills,
         public array $projects,
         public array $posts,
     ) {}
