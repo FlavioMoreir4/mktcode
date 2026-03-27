@@ -35,24 +35,24 @@ const techStack = [
 
 const timeline = [
     {
-        era: 'Pré-história',
-        label: 'O início',
-        desc: 'Internet discada, tabelas como layout e PHP misturado com HTML na mesma linha. Foi assim que começou — na raça, sem Stack Overflow e sem ChatGPT.',
+        era: '2008–2012',
+        label: 'As primeiras linhas',
+        desc: 'Internet discada, tabelas como layout e PHP misturado com HTML na mesma linha. Foi assim que começou — na raça, sem Stack Overflow e sem ChatGPT. Cada bug era uma investigação forense.',
     },
     {
-        era: 'Era jQuery',
+        era: '2012–2016',
         label: 'Memória afetiva',
-        desc: '$.ajax, Bootstrap 2 e a sensação de que animações com easing eram o ápice do frontend. Quem viveu sabe.',
+        desc: '$.ajax, Bootstrap 2 e a sensação de que animações com easing eram o ápice do frontend. Era JavaScript espalhado em arquivo separado, sem módulo, sem build. Quem sobreviveu a esse período tem tolerância alta a caos.',
     },
     {
-        era: 'Antes das PSRs',
+        era: '2016–2020',
         label: 'O caos organizado',
-        desc: 'PHP sem padrão, cada framework com seu universo próprio. Foi nesse ambiente que aprender a escrever código legível virou obsessão.',
+        desc: 'PHP sem padrão, cada framework com seu universo próprio. Foi nesse ambiente que escrever código que outra pessoa consegue ler virou obsessão — não virtude, necessidade.',
     },
     {
         era: 'Hoje',
-        label: 'Stack moderno',
-        desc: 'Laravel 12, Vue 3, DDD, análise estática, testes automatizados. Toda essa bagagem histórica serve pra uma coisa: saber exatamente por que as decisões de hoje existem.',
+        label: 'Stack moderno com contexto',
+        desc: 'Laravel 12, Vue 3, DDD, análise estática, testes automatizados. Toda essa bagagem histórica serve para uma coisa: saber exatamente por que as decisões de hoje existem — e quais valem a pena no seu projeto.',
     },
 ];
 
@@ -150,15 +150,16 @@ onUnmounted(() => observer?.disconnect());
                             <blockquote
                                 class="relative z-10 text-2xl font-medium text-foreground"
                             >
-                                "Não entregamos software. Entregamos sistemas
-                                que o seu negócio pode confiar."
+                                "Qualquer dev entrega código. Eu entrego um
+                                sistema que ainda vai funcionar quando você
+                                crescer."
                             </blockquote>
                         </div>
 
                         <!-- Who is behind -->
                         <section class="reveal space-y-6">
                             <h2 class="text-2xl font-bold tracking-tight">
-                                Quem está por trás.
+                                O cara que vai atender você.
                             </h2>
                             <div
                                 class="space-y-5 text-lg leading-relaxed text-muted-foreground"
@@ -172,16 +173,16 @@ onUnmounted(() => observer?.disconnect());
                                     como "aquela coisa pra fazer pop-up chato",
                                     sobreviveu à era pré-PSR de código sem
                                     convenção, tem memória afetiva com jQuery e
-                                    Bootstrap — e
+                                    Bootstrap —
                                     <em class="text-foreground not-italic"
-                                        >não tem vergonha nenhuma disso.</em
+                                        >e não tem vergonha nenhuma disso.</em
                                     >
                                 </p>
                                 <p>
-                                    Essa bagagem toda não é nostalgia. É
-                                    contexto. Quem viu o frontend evoluir de
-                                    tabelas aninhadas até componentes reativos
-                                    tipados entende, fundamentalmente,
+                                    Essa bagagem não é nostalgia. É contexto.
+                                    Quem viu o frontend evoluir de tabelas
+                                    aninhadas até componentes reativos tipados
+                                    entende, fundamentalmente,
                                     <em
                                         class="font-medium text-foreground not-italic"
                                         >por que</em
@@ -190,11 +191,11 @@ onUnmounted(() => observer?.disconnect());
                                     a pena no seu projeto.
                                 </p>
                                 <p>
-                                    Sim, IAs ajudam muito no desenvolvimento
-                                    moderno. Mas a diferença entre usar IA bem e
-                                    usar IA de forma irresponsável é ter décadas
-                                    de julgamento para saber quando confiar na
-                                    sugestão e quando descartar.
+                                    IA é ferramenta. Ferramenta nas mãos erradas
+                                    gera código que parece certo e falha em
+                                    produção. Décadas de julgamento é o que
+                                    separa usar IA para acelerar de usá-la para
+                                    terceirizar o pensamento.
                                 </p>
                             </div>
                         </section>
@@ -220,7 +221,7 @@ onUnmounted(() => observer?.disconnect());
                                 >
                                     <!-- Dot -->
                                     <div
-                                        class="relative z-10 mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-border bg-background text-[10px] font-bold text-muted-foreground transition-colors group-hover:border-primary"
+                                        class="relative z-10 mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-border bg-background text-[10px] font-bold text-muted-foreground transition-colors hover:border-primary"
                                     >
                                         {{ String(i + 1).padStart(2, '0') }}
                                     </div>
@@ -284,20 +285,20 @@ onUnmounted(() => observer?.disconnect());
                             <p
                                 class="mt-7 border-t border-border pt-5 text-xs leading-relaxed text-muted-foreground italic"
                             >
-                                Não usamos tecnologia velha só porque é
-                                "confortável". Usamos o que resolve o seu
-                                problema com eficiência e longevidade.
+                                Cada item dessa lista tem cicatriz de produção.
+                                Não é hype — é o que funciona quando o sistema
+                                precisa estar no ar às 3h da manhã.
                             </p>
                         </div>
 
-                        <!-- Proof / credibility block -->
+                        <!-- Credibility grid — stat "5+" corrigido para "15+" -->
                         <div class="reveal grid grid-cols-2 gap-3">
                             <div
                                 class="rounded-2xl border border-border bg-muted/30 p-5 text-center"
                             >
-                                <p class="text-3xl font-bold">5+</p>
+                                <p class="text-3xl font-bold">15+</p>
                                 <p class="mt-1 text-xs text-muted-foreground">
-                                    Anos de produto em produção
+                                    Anos de experiência
                                 </p>
                             </div>
                             <div
@@ -326,20 +327,22 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </div>
 
-                        <!-- CTA card -->
+                        <!-- CTA card — variante outline para não competir com o bottom CTA -->
                         <div
-                            class="reveal overflow-hidden rounded-3xl bg-primary p-8 text-primary-foreground"
+                            class="reveal rounded-3xl border border-border bg-card p-8"
                         >
                             <h3 class="text-xl font-bold">
                                 Pronto para começar?
                             </h3>
-                            <p class="mt-2 text-sm leading-relaxed opacity-80">
+                            <p
+                                class="mt-2 text-sm leading-relaxed text-muted-foreground"
+                            >
                                 Vamos falar sobre como transformar seu desafio
                                 técnico em um sistema sólido.
                             </p>
                             <Link
                                 :href="contact().url"
-                                class="mt-6 flex items-center justify-center gap-2 rounded-full bg-primary-foreground px-6 py-3 text-sm font-bold text-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                                class="mt-6 flex items-center justify-center gap-2 rounded-full border border-primary bg-transparent px-6 py-3 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-[0.98]"
                             >
                                 Iniciar conversa
                                 <ArrowRight class="h-4 w-4" />

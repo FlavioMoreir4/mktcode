@@ -1,68 +1,166 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import {
-    MapPin,
-    Github,
-    Linkedin,
-    Twitter,
-    Instagram,
-    Youtube,
-    Globe,
-    Link as LucideLink,
     ArrowRight,
-    Calendar,
     Clock,
-    ExternalLink,
+    Globe,
+    Layers,
+    BookOpen,
+    MapPin,
 } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted } from 'vue';
+import {
+    GitHubIcon,
+    GitLabIcon,
+    BitbucketIcon,
+    NpmIcon,
+    StackOverflowIcon,
+    ProductHuntIcon,
+    XIcon,
+    InstagramIcon,
+    FacebookIcon,
+    ThreadsIcon,
+    BlueskyIcon,
+    MastodonIcon,
+    SnapchatIcon,
+    PinterestIcon,
+    TikTokIcon,
+    RedditIcon,
+    YouTubeIcon,
+    TwitchIcon,
+    SpotifyIcon,
+    DiscordIcon,
+    TelegramIcon,
+    WhatsAppIcon,
+    MediumIcon,
+    DevDottoIcon,
+    HashnodeIcon,
+    SubstackIcon,
+    DribbbleIcon,
+    BehanceIcon,
+    FigmaIcon,
+    PatreonIcon,
+    KoFiIcon,
+} from 'vue3-simple-icons';
 import ProjectCard from '@/components/marketing/ProjectCard.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { formatDate } from '@/lib/utils';
 import { contact } from '@/routes/public';
 import blog from '@/routes/public/blog';
-import type { PublicUser } from '@/types';
+import type { PublicProfileViewData } from '@/types';
 
 const props = defineProps<{
-    user: PublicUser;
+    user: PublicProfileViewData;
 }>();
 
-// ─── Social icon + label ──────────────────────────────────────────────────────
-const socialIconMap: Record<string, unknown> = {
-    github: Github,
-    linkedin: Linkedin,
-    twitter: Twitter,
-    instagram: Instagram,
-    youtube: Youtube,
-    website: Globe,
+// ─── Social: Simple Icons mapping ────────────────────────────────────────────
+// Chave = platform string vinda do backend (lowercase, normalizada)
+const socialMap: Record<string, { icon: unknown; label: string }> = {
+    // Dev / código
+    github: { icon: GitHubIcon, label: 'GitHub' },
+    gitlab: { icon: GitLabIcon, label: 'GitLab' },
+    bitbucket: { icon: BitbucketIcon, label: 'Bitbucket' },
+    npm: { icon: NpmIcon, label: 'npm' },
+    stackoverflow: { icon: StackOverflowIcon, label: 'Stack Overflow' },
+
+    // Profissional
+    linkedin: { icon: Globe, label: 'LinkedIn' },
+    producthunt: { icon: ProductHuntIcon, label: 'Product Hunt' },
+
+    // Redes sociais
+    x: { icon: XIcon, label: 'X' },
+    twitter: { icon: XIcon, label: 'Twitter' },
+    instagram: { icon: InstagramIcon, label: 'Instagram' },
+    facebook: { icon: FacebookIcon, label: 'Facebook' },
+    threads: { icon: ThreadsIcon, label: 'Threads' },
+    bluesky: { icon: BlueskyIcon, label: 'Bluesky' },
+    mastodon: { icon: MastodonIcon, label: 'Mastodon' },
+    snapchat: { icon: SnapchatIcon, label: 'Snapchat' },
+    pinterest: { icon: PinterestIcon, label: 'Pinterest' },
+    tiktok: { icon: TikTokIcon, label: 'TikTok' },
+    reddit: { icon: RedditIcon, label: 'Reddit' },
+
+    // Vídeo / streaming / áudio
+    youtube: { icon: YouTubeIcon, label: 'YouTube' },
+    twitch: { icon: TwitchIcon, label: 'Twitch' },
+    spotify: { icon: SpotifyIcon, label: 'Spotify' },
+
+    // Comunidade / chat
+    discord: { icon: DiscordIcon, label: 'Discord' },
+    telegram: { icon: TelegramIcon, label: 'Telegram' },
+    whatsapp: { icon: WhatsAppIcon, label: 'WhatsApp' },
+
+    // Blog / escrita / design
+    medium: { icon: MediumIcon, label: 'Medium' },
+    devto: { icon: DevDottoIcon, label: 'Dev.to' },
+    'dev.to': { icon: DevDottoIcon, label: 'Dev.to' },
+    hashnode: { icon: HashnodeIcon, label: 'Hashnode' },
+    substack: { icon: SubstackIcon, label: 'Substack' },
+    dribbble: { icon: DribbbleIcon, label: 'Dribbble' },
+    behance: { icon: BehanceIcon, label: 'Behance' },
+    figma: { icon: FigmaIcon, label: 'Figma' },
+
+    // Apoio / monetização
+    patreon: { icon: PatreonIcon, label: 'Patreon' },
+    kofi: { icon: KoFiIcon, label: 'Ko-fi' },
+    'ko-fi': { icon: KoFiIcon, label: 'Ko-fi' },
 };
-const getSocialIcon = (p: string) => socialIconMap[p] ?? LucideLink;
-const getSocialLabel = (p: string) => p.charAt(0).toUpperCase() + p.slice(1);
 
-// ─── Has content checks ───────────────────────────────────────────────────────
+// Normaliza a string vinda do backend antes de buscar no map
+const normalizePlatform = (platform: string) =>
+    platform.toLowerCase().replace(/[\s_]/g, '');
+
+const getSocialEntry = (platform: string) =>
+    socialMap[normalizePlatform(platform)] ?? null;
+
+// ─── Bio: extrai só o primeiro parágrafo ──────────────────────────────────────
+const bioFirstParagraph = computed(() => {
+    if (!props.user.bio) {
+        return null;
+    }
+
+    const match = props.user.bio.match(/<p>([\s\S]*?)<\/p>/);
+
+    return match ? `<p>${match[1]}</p>` : props.user.bio;
+});
+
+// ─── Has content ──────────────────────────────────────────────────────────────
 const hasSocial = computed(() => {
-    const social = props.user.social;
+    const s = props.user.social;
 
-    if (!social) {
+    if (!s) {
         return false;
     }
 
-    return Array.isArray(social)
-        ? social.length > 0
-        : Object.keys(social).length > 0;
+    return Array.isArray(s) ? s.length > 0 : Object.keys(s).length > 0;
 });
 
-const hasProjects = computed(() => props.user.projects?.data?.length > 0);
-const hasPosts = computed(() => props.user.posts?.data?.length > 0);
-
-console.log(
-    'hasPosts:',
-    hasPosts.value,
-    'hasProjects:',
-    hasProjects.value,
-    'hasSocial:',
-    hasSocial.value,
+const hasProjects = computed(
+    () => (props.user.projects?.data?.length ?? 0) > 0,
 );
+const hasPosts = computed(() => (props.user.posts?.data?.length ?? 0) > 0);
+
+const featuredProject = computed(
+    () => props.user.projects?.data?.find((p) => p.featured) ?? null,
+);
+const regularProjects = computed(
+    () => props.user.projects?.data?.filter((p) => !p.featured) ?? [],
+);
+
+const stats = computed(() => [
+    {
+        value: props.user.projects?.data?.length ?? 0,
+        label: 'Projetos',
+        icon: Layers,
+    },
+    {
+        value: props.user.posts?.data?.length ?? 0,
+        label: 'Artigos',
+        icon: BookOpen,
+    },
+]);
+
 // ─── Scroll reveal ────────────────────────────────────────────────────────────
 let observer: IntersectionObserver | null = null;
 
@@ -85,15 +183,14 @@ onUnmounted(() => observer?.disconnect());
 </script>
 
 <template>
-    <SeoHead v-bind="user.seo" />
+    <SeoHead />
 
     <PublicLayout>
         <!-- ══════════════════════════════════════════════
              COVER + IDENTITY
         ══════════════════════════════════════════════ -->
         <section class="relative pt-20">
-            <!-- Cover photo -->
-            <div class="relative h-56 w-full overflow-hidden bg-muted md:h-80">
+            <div class="relative h-52 w-full overflow-hidden bg-muted md:h-72">
                 <img
                     v-if="user.cover"
                     :src="user.cover"
@@ -103,23 +200,19 @@ onUnmounted(() => observer?.disconnect());
                 />
                 <div
                     v-else
-                    class="h-full w-full bg-gradient-to-br from-primary/15 via-primary/5 to-transparent"
+                    class="h-full w-full bg-gradient-to-br from-primary/20 via-primary/5 to-transparent"
                 />
-                <!-- Fade into background -->
                 <div
-                    class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"
+                    class="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent"
                 />
             </div>
 
-            <!-- Identity row -->
             <div class="mx-auto max-w-7xl px-6">
-                <div
-                    class="relative -mt-20 flex flex-col items-start gap-6 md:-mt-28 md:flex-row md:items-end"
-                >
-                    <!-- Avatar -->
-                    <div class="shrink-0">
+                <div class="relative -mt-16 md:-mt-24">
+                    <!-- Avatar + CTAs -->
+                    <div class="flex items-end justify-between gap-4">
                         <div
-                            class="h-36 w-36 overflow-hidden rounded-3xl border-4 border-background bg-muted shadow-2xl md:h-48 md:w-48"
+                            class="h-32 w-32 overflow-hidden rounded-3xl border-4 border-background bg-muted shadow-2xl md:h-44 md:w-44"
                         >
                             <img
                                 v-if="user.avatar"
@@ -134,60 +227,134 @@ onUnmounted(() => observer?.disconnect());
                                 {{ user.name.charAt(0) }}
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Name + title + location -->
-                    <div class="min-w-0 flex-1 pb-4">
-                        <h1
-                            class="text-3xl font-bold tracking-tight md:text-5xl"
-                        >
-                            {{ user.name }}
-                        </h1>
-                        <p
-                            v-if="user.title"
-                            class="mt-1.5 text-lg font-medium text-primary/80"
-                        >
-                            {{ user.title }}
-                        </p>
-                        <div
-                            class="mt-3 flex flex-wrap gap-4 text-sm text-muted-foreground"
-                        >
-                            <div
-                                v-if="user.location"
-                                class="flex items-center gap-1.5"
+                        <div class="flex items-center gap-3 pb-3">
+                            <a
+                                v-if="
+                                    user.social?.find(
+                                        (l) =>
+                                            normalizePlatform(l.platform) ===
+                                            'github',
+                                    )
+                                "
+                                :href="
+                                    user.social.find(
+                                        (l) =>
+                                            normalizePlatform(l.platform) ===
+                                            'github',
+                                    )!.url
+                                "
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="GitHub"
+                                class="flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-bold transition-all hover:bg-muted"
                             >
-                                <MapPin class="h-4 w-4 shrink-0" />
-                                {{ user.location }}
-                            </div>
+                                <component
+                                    :is="getSocialEntry('github').icon"
+                                    class="h-4 w-4"
+                                />
+                                <span class="hidden sm:inline">GitHub</span>
+                            </a>
+                            <Link
+                                :href="contact().url"
+                                class="rounded-full bg-primary px-5 py-2 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+                            >
+                                Contratar
+                            </Link>
                         </div>
                     </div>
 
-                    <!-- CTA -->
-                    <div class="flex gap-3 pb-4">
-                        <Link
-                            :href="contact().url"
-                            class="rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:scale-[1.02] hover:opacity-90 active:scale-[0.98]"
+                    <!-- Nome + título + localização -->
+                    <div class="mt-5">
+                        <h1
+                            class="text-3xl font-bold tracking-tight md:text-4xl"
                         >
-                            Contratar
-                        </Link>
-                        <a
-                            v-if="
-                                user.social?.find(
-                                    (l) => l.platform === 'github',
-                                )
-                            "
-                            :href="
-                                user.social.find(
-                                    (l) => l.platform === 'github',
-                                )!.url
-                            "
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-bold transition-all hover:bg-muted"
+                            {{ user.name }}
+                        </h1>
+
+                        <div
+                            class="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"
                         >
-                            <Github class="h-4 w-4" />
-                            GitHub
-                        </a>
+                            <span
+                                v-if="user.title"
+                                class="font-semibold text-primary/80"
+                                >{{ user.title }}</span
+                            >
+                            <span
+                                v-if="user.location"
+                                class="flex items-center gap-1.5 text-muted-foreground"
+                            >
+                                <MapPin class="h-3.5 w-3.5 shrink-0" />
+                                {{ user.location }}
+                            </span>
+                        </div>
+
+                        <!-- ── Social pills com Simple Icons ───────── -->
+                        <div v-if="hasSocial" class="mt-4 flex flex-wrap gap-2">
+                            <template
+                                v-for="link in user.social"
+                                :key="link.platform"
+                            >
+                                <!-- Plataforma reconhecida -->
+                                <a
+                                    v-if="getSocialEntry(link.platform)"
+                                    :href="link.url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    :aria-label="
+                                        getSocialEntry(link.platform)!.label
+                                    "
+                                    :title="
+                                        getSocialEntry(link.platform)!.label
+                                    "
+                                    class="group flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                                >
+                                    <component
+                                        :is="
+                                            getSocialEntry(link.platform)!.icon
+                                        "
+                                        class="h-3.5 w-3.5 shrink-0"
+                                    />
+                                    {{ getSocialEntry(link.platform)!.label }}
+                                </a>
+
+                                <!-- Fallback: plataforma desconhecida → Globe do Lucide -->
+                                <a
+                                    v-else
+                                    :href="link.url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    :aria-label="link.platform"
+                                    :title="link.platform"
+                                    class="group flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+                                >
+                                    <Globe class="h-3.5 w-3.5 shrink-0" />
+                                    {{ link.platform }}
+                                </a>
+                            </template>
+                        </div>
+
+                        <!-- Stats -->
+                        <div
+                            class="mt-6 flex flex-wrap gap-6 border-t border-border pt-6"
+                        >
+                            <div
+                                v-for="stat in stats"
+                                :key="stat.label"
+                                class="flex items-center gap-2.5"
+                            >
+                                <component
+                                    :is="stat.icon"
+                                    class="h-4 w-4 text-muted-foreground"
+                                />
+                                <span class="text-lg leading-none font-bold">{{
+                                    stat.value
+                                }}</span>
+                                <span class="text-sm text-muted-foreground">{{
+                                    stat.label
+                                }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,9 +366,8 @@ onUnmounted(() => observer?.disconnect());
         <section class="pt-12 pb-32">
             <div class="mx-auto max-w-7xl px-6">
                 <div class="grid grid-cols-1 gap-12 lg:grid-cols-12">
-                    <!-- ── Sidebar ──────────────────────────────────── -->
-                    <aside class="space-y-10 lg:col-span-4">
-                        <!-- Bio -->
+                    <!-- Sidebar -->
+                    <aside class="space-y-8 lg:col-span-4">
                         <div class="reveal">
                             <h3
                                 class="mb-4 text-xs font-bold tracking-widest text-muted-foreground uppercase"
@@ -209,9 +375,9 @@ onUnmounted(() => observer?.disconnect());
                                 Sobre
                             </h3>
                             <div
-                                v-if="user.bio"
+                                v-if="bioFirstParagraph"
                                 class="prose prose-sm max-w-none text-muted-foreground dark:prose-invert prose-p:leading-relaxed prose-a:font-semibold prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
-                                v-html="user.bio"
+                                v-html="bioFirstParagraph"
                             />
                             <p
                                 v-else
@@ -221,58 +387,62 @@ onUnmounted(() => observer?.disconnect());
                             </p>
                         </div>
 
-                        <!-- Social links -->
-                        <div v-if="hasSocial" class="reveal">
+                        <div class="reveal">
                             <h3
                                 class="mb-4 text-xs font-bold tracking-widest text-muted-foreground uppercase"
                             >
-                                Conecte-se
+                                Stack principal
                             </h3>
-                            <div class="flex flex-col gap-2">
-                                <a
-                                    v-for="link in user.social"
-                                    :key="link.platform"
-                                    :href="link.url"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="group flex items-center gap-3 rounded-xl border border-border bg-card/50 p-3.5 transition-all hover:border-primary/30 hover:bg-primary/5"
+                            <div class="flex flex-wrap gap-2">
+                                <span
+                                    v-for="tech in [
+                                        'Laravel',
+                                        'PHP 8.2+',
+                                        'Vue 3',
+                                        'Inertia.js',
+                                        'TypeScript',
+                                        'Tailwind CSS',
+                                        'MySQL',
+                                        'Redis',
+                                        'Docker',
+                                    ]"
+                                    :key="tech"
+                                    class="rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-xs font-medium text-muted-foreground"
                                 >
-                                    <div
-                                        class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/8 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground"
-                                    >
-                                        <component
-                                            :is="getSocialIcon(link.platform)"
-                                            class="h-4 w-4"
-                                        />
-                                    </div>
-                                    <span class="text-sm font-semibold">
-                                        {{ getSocialLabel(link.platform) }}
-                                    </span>
-                                    <ExternalLink
-                                        class="ml-auto h-3.5 w-3.5 text-muted-foreground/40 transition-colors group-hover:text-primary/60"
-                                    />
-                                </a>
+                                    {{ tech }}
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Stack (if no social — fills the sidebar) -->
                         <div
-                            v-if="!hasSocial && !hasPosts"
-                            class="reveal rounded-2xl border border-border bg-muted/30 p-5"
+                            class="reveal rounded-2xl border border-border bg-card p-6"
                         >
-                            <p class="text-sm text-muted-foreground italic">
-                                Nenhum link social adicionado ainda.
+                            <h3 class="mb-1 font-bold">
+                                Disponível para projetos
+                            </h3>
+                            <p
+                                class="mb-5 text-sm leading-relaxed text-muted-foreground"
+                            >
+                                Quer uma conversa sobre o seu desafio técnico?
+                                Sem ticket, sem formulário com 20 campos.
                             </p>
+                            <Link
+                                :href="contact().url"
+                                class="flex w-full items-center justify-center gap-2 rounded-full border border-primary bg-transparent px-4 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-[0.98]"
+                            >
+                                Iniciar conversa
+                                <ArrowRight class="h-4 w-4" />
+                            </Link>
                         </div>
                     </aside>
 
-                    <!-- ── Feed ────────────────────────────────────── -->
-                    <div class="space-y-20 lg:col-span-8">
-                        <!-- Projects -->
+                    <!-- Feed -->
+                    <div class="space-y-16 lg:col-span-8">
+                        <!-- Projetos -->
                         <div v-if="hasProjects" class="reveal">
                             <div class="mb-8 flex items-center justify-between">
                                 <h2 class="text-2xl font-bold tracking-tight">
-                                    Projetos em destaque
+                                    Projetos
                                 </h2>
                                 <Link
                                     href="/projetos"
@@ -285,9 +455,80 @@ onUnmounted(() => observer?.disconnect());
                                 </Link>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <!-- Featured -->
+                            <div v-if="featuredProject" class="mb-5">
                                 <div
-                                    v-for="(project, i) in user.projects.data"
+                                    class="reveal group relative overflow-hidden rounded-3xl border border-border bg-card p-7 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
+                                >
+                                    <div class="mb-2 flex items-center gap-2">
+                                        <span
+                                            class="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold tracking-widest text-primary uppercase"
+                                            >Destaque</span
+                                        >
+                                        <span
+                                            v-if="featuredProject.year"
+                                            class="text-xs text-muted-foreground"
+                                            >{{ featuredProject.year }}</span
+                                        >
+                                    </div>
+                                    <h3
+                                        class="mb-2 text-xl font-bold tracking-tight"
+                                    >
+                                        {{ featuredProject.title }}
+                                    </h3>
+                                    <p
+                                        v-if="featuredProject.description"
+                                        class="mb-5 line-clamp-2 text-sm leading-relaxed text-muted-foreground"
+                                    >
+                                        {{ featuredProject.description }}
+                                    </p>
+                                    <p
+                                        v-else
+                                        class="mb-5 line-clamp-2 text-sm leading-relaxed text-muted-foreground"
+                                    >
+                                        {{ featuredProject.client }} —
+                                        plataforma construída com arquitetura
+                                        enterprise e código preparado para
+                                        crescer.
+                                    </p>
+                                    <div
+                                        class="flex flex-wrap items-center gap-3"
+                                    >
+                                        <Link
+                                            :href="`/projetos/${featuredProject.slug}`"
+                                            class="flex items-center gap-1.5 text-sm font-bold text-primary group-hover:underline"
+                                        >
+                                            Ver case completo
+                                            <ArrowRight
+                                                class="h-4 w-4 transition-transform group-hover:translate-x-0.5"
+                                            />
+                                        </Link>
+                                        <div
+                                            v-if="featuredProject.stack?.length"
+                                            class="flex flex-wrap gap-1.5"
+                                        >
+                                            <span
+                                                v-for="tech in featuredProject.stack.slice(
+                                                    0,
+                                                    3,
+                                                )"
+                                                :key="tech"
+                                                class="rounded-md border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                            >
+                                                {{ tech }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Regulares -->
+                            <div
+                                v-if="regularProjects.length > 0"
+                                class="grid grid-cols-1 gap-5 sm:grid-cols-2"
+                            >
+                                <div
+                                    v-for="(project, i) in regularProjects"
                                     :key="project.slug"
                                     class="reveal"
                                     :style="{
@@ -299,11 +540,11 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </div>
 
-                        <!-- Posts -->
+                        <!-- Artigos -->
                         <div v-if="hasPosts" class="reveal">
                             <div class="mb-8 flex items-center justify-between">
                                 <h2 class="text-2xl font-bold tracking-tight">
-                                    Últimos artigos
+                                    Artigos
                                 </h2>
                                 <Link
                                     href="/blog"
@@ -316,72 +557,75 @@ onUnmounted(() => observer?.disconnect());
                                 </Link>
                             </div>
 
-                            <div class="divide-y divide-border">
+                            <div class="space-y-0">
                                 <article
                                     v-for="(post, i) in user.posts.data"
-                                    :key="i"
-                                    class="group py-6 first:pt-0"
+                                    :key="post.slug"
+                                    class="group relative"
                                 >
                                     <Link
                                         :href="blog.show(post.slug)"
-                                        class="block space-y-2"
+                                        class="flex gap-6 border-b border-border py-7 transition-colors first:border-t hover:bg-muted/30"
                                     >
-                                        <!-- Meta -->
-                                        <div
-                                            class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
+                                        <span
+                                            class="mt-0.5 w-8 shrink-0 text-right text-2xl leading-none font-bold text-border transition-colors group-hover:text-primary/20"
                                         >
-                                            <span
-                                                v-if="post.category"
-                                                class="font-semibold text-primary/70"
+                                            {{ String(i + 1).padStart(2, '0') }}
+                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <div
+                                                class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"
                                             >
-                                                {{ post.category.name }}
-                                            </span>
-                                            <span
-                                                v-if="post.category"
-                                                class="text-border"
-                                                >·</span
+                                                <span
+                                                    v-if="post.category"
+                                                    class="text-[10px] font-bold tracking-wider text-primary/70 uppercase"
+                                                    >{{
+                                                        post.category.name
+                                                    }}</span
+                                                >
+                                                <span
+                                                    v-if="post.category"
+                                                    class="text-border"
+                                                    >·</span
+                                                >
+                                                <time
+                                                    :datetime="
+                                                        post.published_at ?? ''
+                                                    "
+                                                    >{{
+                                                        formatDate(
+                                                            post.published_at ??
+                                                                '',
+                                                        )
+                                                    }}</time
+                                                >
+                                                <span class="text-border"
+                                                    >·</span
+                                                >
+                                                <span
+                                                    class="flex items-center gap-1"
+                                                >
+                                                    <Clock class="h-3 w-3" />
+                                                    {{ post.reading_time }} min
+                                                </span>
+                                            </div>
+                                            <h3
+                                                class="mb-2 text-lg leading-snug font-bold tracking-tight transition-colors group-hover:text-primary"
                                             >
-                                            <span
-                                                class="flex items-center gap-1"
+                                                {{ post.title }}
+                                            </h3>
+                                            <p
+                                                v-if="post.excerpt"
+                                                class="line-clamp-2 text-sm leading-relaxed text-muted-foreground"
                                             >
-                                                <Calendar class="h-3 w-3" />
-                                                {{
-                                                    formatDate(
-                                                        post.published_at ?? '',
-                                                    )
-                                                }}
-                                            </span>
-                                            <span class="text-border">·</span>
-                                            <span
-                                                class="flex items-center gap-1"
-                                            >
-                                                <Clock class="h-3 w-3" />
-                                                {{ post.reading_time }} min
-                                            </span>
+                                                {{ post.excerpt }}
+                                            </p>
                                         </div>
-
-                                        <!-- Title -->
-                                        <h3
-                                            class="text-xl leading-snug font-bold tracking-tight transition-colors group-hover:text-primary"
-                                        >
-                                            {{ post.title }}
-                                        </h3>
-
-                                        <!-- Excerpt -->
-                                        <p
-                                            v-if="post.excerpt"
-                                            class="line-clamp-2 text-sm leading-relaxed text-muted-foreground"
-                                        >
-                                            {{ post.excerpt }}
-                                        </p>
-
-                                        <!-- Read more -->
                                         <div
-                                            class="flex items-center gap-1.5 pt-1 text-sm font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
+                                            class="flex shrink-0 items-center self-center"
                                         >
-                                            Ler artigo
                                             <ArrowRight
-                                                class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                                                class="h-4 w-4 text-muted-foreground/30 transition-all group-hover:translate-x-0.5 group-hover:text-primary"
                                             />
                                         </div>
                                     </Link>
@@ -389,7 +633,6 @@ onUnmounted(() => observer?.disconnect());
                             </div>
                         </div>
 
-                        <!-- Empty state (no projects + no posts) -->
                         <div
                             v-if="!hasProjects && !hasPosts"
                             class="reveal flex flex-col items-center gap-4 rounded-3xl border border-dashed border-border py-20 text-center"
@@ -403,9 +646,7 @@ onUnmounted(() => observer?.disconnect());
             </div>
         </section>
 
-        <!-- ══════════════════════════════════════════════
-            BOTTOM CTA
-        ══════════════════════════════════════════════ -->
+        <!-- Bottom CTA -->
         <div class="reveal mx-6 mb-24">
             <div
                 class="mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-primary px-8 py-14 text-primary-foreground md:px-14"

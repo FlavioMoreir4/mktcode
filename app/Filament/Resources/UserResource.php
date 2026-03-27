@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Domain\Identity\Enums\SocialPlatform;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use BackedEnum;
@@ -97,7 +98,10 @@ class UserResource extends Resource
                             ->schema([
                                 Forms\Components\RichEditor::make('bio')
                                     ->label('Biografia')
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->toolbarButtons(['bold', 'italic', 'underline', 'link'])
+                                    ->extraAttributes(['style' => 'min-height: 150px; max-height: 300px; overflow-y: auto;'])
+                                    ->maxLength(500),
                             ]),
 
                         Tab::make('Redes')
@@ -105,21 +109,22 @@ class UserResource extends Resource
                             ->schema([
                                 Forms\Components\Repeater::make('social_links')
                                     ->label('Links')
+                                    ->addActionLabel('Adicionar link')
                                     ->schema([
                                         Forms\Components\Select::make('platform')
-                                            ->options([
-                                                'github' => 'GitHub',
-                                                'linkedin' => 'LinkedIn',
-                                                'twitter' => 'Twitter',
-                                                'instagram' => 'Instagram',
-                                                'reddit' => 'Reddit',
-                                                'tiktok' => 'TikTok',
-                                                'website' => 'Website',
-                                            ])
+                                            ->options(collect(SocialPlatform::cases())
+                                                ->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->name)]))
+                                            ->searchable()
+                                            ->live()
+                                            ->afterStateUpdated(fn ($get, $set, $state) => $set('url', $get('platform') ? SocialPlatform::from($state)->placeholder() : ''))
                                             ->required(),
 
                                         Forms\Components\TextInput::make('url')
                                             ->url()
+                                            ->placeholder(fn ($get) => $get('platform')
+                                                ? SocialPlatform::from($get('platform'))->placeholder()
+                                                : 'https://example.com'
+                                            )
                                             ->required(),
                                     ])
                                     ->columns(2)
@@ -133,12 +138,14 @@ class UserResource extends Resource
                                     ->label('Avatar')
                                     ->collection('profile_photo')
                                     ->avatar()
+                                    ->imageEditor()
                                     ->image(),
 
                                 Forms\Components\SpatieMediaLibraryFileUpload::make('cover_photo')
                                     ->label('Capa')
                                     ->collection('cover_photo')
                                     ->image()
+                                    ->imageEditor()
                                     ->columnSpanFull(),
                             ])
                             ->columns(2),

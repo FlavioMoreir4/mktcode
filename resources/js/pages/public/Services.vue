@@ -56,7 +56,7 @@ const iconMap: Record<string, unknown> = {
 };
 const getIcon = (icon: string) => iconMap[icon] ?? Monitor;
 
-// ─── Service slug (for anchor IDs) ───────────────────────────────────────────
+// ─── Service slug ─────────────────────────────────────────────────────────────
 const slugify = (str: string) =>
     str
         .toLowerCase()
@@ -65,10 +65,14 @@ const slugify = (str: string) =>
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
+const padIndex = (i: number) => String(i + 1).padStart(2, '0');
+
 // ─── Active section tracking ──────────────────────────────────────────────────
 const activeId = ref<string>('');
+const showMobileNav = ref(false);
 
 const handleScroll = () => {
+    // Active section
     const sections = document.querySelectorAll<HTMLElement>(
         '[data-service-section]',
     );
@@ -79,6 +83,9 @@ const handleScroll = () => {
         }
     });
     activeId.value = current;
+
+    // Mobile pill nav — aparece após 200px
+    showMobileNav.value = window.scrollY > 200;
 };
 
 // ─── Scroll reveal ────────────────────────────────────────────────────────────
@@ -86,11 +93,8 @@ let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // set initial active
     handleScroll();
 
-    // Scroll reveal
     observer = new IntersectionObserver(
         (entries) => {
             entries.forEach((entry) => {
@@ -110,10 +114,7 @@ onUnmounted(() => {
     observer?.disconnect();
 });
 
-// ─── Padded index ─────────────────────────────────────────────────────────────
-// const padIndex = (i: number) => String(i + 1).padStart(2, '0');
-
-// ─── ToC items ───────────────────────────────────────────────────────────────
+// ─── ToC items ────────────────────────────────────────────────────────────────
 const tocItems = computed(() =>
     props.services.map((s) => ({ id: slugify(s.title), label: s.title })),
 );
@@ -126,12 +127,56 @@ const scrollTo = (id: string) => {
         window.scrollTo({ top, behavior: 'smooth' });
     }
 };
+
+// Label curto para a pill nav mobile
+const shortLabel = (title: string) => {
+    // Pega a primeira parte antes de "&" ou "—"
+    return title.split(/[&—]/)[0].trim();
+};
 </script>
 
 <template>
     <SeoHead v-bind="props.seo" />
 
     <PublicLayout>
+        <!-- ── Pill nav mobile — sticky, aparece após 200px ──────────── -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-all duration-200"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition-all duration-150"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0 -translate-y-2"
+            >
+                <div
+                    v-if="showMobileNav"
+                    class="fixed top-[57px] right-0 left-0 z-40 overflow-x-auto border-b border-border bg-background/95 px-4 py-2.5 backdrop-blur-sm xl:hidden"
+                    role="navigation"
+                    aria-label="Navegação rápida entre serviços"
+                >
+                    <div class="flex gap-2 whitespace-nowrap">
+                        <button
+                            v-for="(item, i) in tocItems"
+                            :key="item.id"
+                            class="rounded-full px-3.5 py-1.5 text-xs font-medium transition-all"
+                            :class="
+                                activeId === item.id
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                            "
+                            @click="scrollTo(item.id)"
+                        >
+                            <span class="mr-1 opacity-60">{{
+                                padIndex(i)
+                            }}</span
+                            >{{ shortLabel(item.label) }}
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
         <div class="px-6 pt-32 pb-32">
             <div class="mx-auto max-w-7xl">
                 <!-- ── Page Header ──────────────────────────────────────── -->
@@ -155,7 +200,6 @@ const scrollTo = (id: string) => {
                         transparente do início ao fim.
                     </p>
 
-                    <!-- Quick stats -->
                     <div class="mt-10 flex flex-wrap gap-6">
                         <div class="flex items-center gap-2 text-sm">
                             <span
@@ -205,13 +249,21 @@ const scrollTo = (id: string) => {
                                 Nesta página
                             </p>
                             <ul class="space-y-1">
-                                <li v-for="item in tocItems" :key="item.id">
+                                <li
+                                    v-for="(item, i) in tocItems"
+                                    :key="item.id"
+                                >
                                     <button
                                         class="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors"
                                         :class="
                                             activeId === item.id
-                                                ? 'bg-primary/8 font-semibold text-primary'
+                                                ? 'bg-primary/10 font-semibold text-primary'
                                                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                                        "
+                                        :aria-current="
+                                            activeId === item.id
+                                                ? 'location'
+                                                : undefined
                                         "
                                         @click="scrollTo(item.id)"
                                     >
@@ -223,6 +275,10 @@ const scrollTo = (id: string) => {
                                                     : 'bg-border group-hover:bg-muted-foreground'
                                             "
                                         />
+                                        <span
+                                            class="mr-0.5 text-[10px] font-medium opacity-50"
+                                            >{{ padIndex(i) }}</span
+                                        >
                                         {{ item.label }}
                                     </button>
                                 </li>
@@ -252,24 +308,32 @@ const scrollTo = (id: string) => {
                     <div class="min-w-0 flex-1">
                         <div class="space-y-0 divide-y divide-border">
                             <article
-                                v-for="service in services"
+                                v-for="(service, i) in services"
                                 :id="slugify(service.title)"
                                 :key="service.id"
                                 :data-service-section="slugify(service.title)"
                                 class="py-16 first:pt-0"
                             >
-                                <!-- Index + title row -->
+                                <!-- Número + ícone + título -->
                                 <div
                                     class="reveal mb-10 flex items-start gap-5"
                                 >
-                                    <div class="min-w-0">
+                                    <div class="min-w-0 flex-1">
                                         <div
-                                            class="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/8 text-primary ring-1 ring-primary/15"
+                                            class="mb-3 flex items-center gap-3"
                                         >
-                                            <component
-                                                :is="getIcon(service.icon)"
-                                                class="h-6 w-6"
-                                            />
+                                            <div
+                                                class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15"
+                                            >
+                                                <component
+                                                    :is="getIcon(service.icon)"
+                                                    class="h-6 w-6"
+                                                />
+                                            </div>
+                                            <span
+                                                class="text-4xl font-bold text-border/60 tabular-nums"
+                                                >{{ padIndex(i) }}</span
+                                            >
                                         </div>
                                         <h2
                                             class="text-3xl font-bold tracking-tight md:text-4xl"
@@ -284,7 +348,7 @@ const scrollTo = (id: string) => {
                                     class="reveal grid grid-cols-1 gap-8 lg:grid-cols-2"
                                     style="--reveal-delay: 60ms"
                                 >
-                                    <!-- Left: description + ideal for -->
+                                    <!-- Left: descrição + ideal_for + CTA mobile -->
                                     <div class="space-y-6">
                                         <p
                                             class="text-lg leading-relaxed text-muted-foreground"
@@ -308,7 +372,7 @@ const scrollTo = (id: string) => {
                                             </p>
                                         </div>
 
-                                        <!-- Mobile CTA (inside card) -->
+                                        <!-- CTA mobile -->
                                         <div class="lg:hidden">
                                             <Link
                                                 :href="contact().url"
@@ -324,7 +388,7 @@ const scrollTo = (id: string) => {
                                     <div
                                         class="group relative overflow-hidden rounded-3xl border border-border bg-card p-7 transition-all duration-300 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5"
                                     >
-                                        <!-- Subtle glow on hover -->
+                                        <!-- Glow on hover -->
                                         <div
                                             class="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-primary/5 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
                                         />
@@ -342,7 +406,7 @@ const scrollTo = (id: string) => {
                                                 class="group/item flex items-start gap-3"
                                             >
                                                 <div
-                                                    class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/8 text-primary transition-all duration-200 group-hover/item:bg-primary group-hover/item:text-primary-foreground"
+                                                    class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-all duration-200 group-hover/item:bg-primary group-hover/item:text-primary-foreground"
                                                 >
                                                     <CheckCircle2
                                                         class="h-3 w-3"
@@ -432,7 +496,6 @@ const scrollTo = (id: string) => {
 </template>
 
 <style scoped>
-/* ── Scroll reveal ──────────────────────────────────────── */
 .reveal {
     opacity: 0;
     transform: translateY(20px);
