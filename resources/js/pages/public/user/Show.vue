@@ -186,7 +186,7 @@ onUnmounted(() => observer?.disconnect());
 
     <PublicLayout>
         <!-- ══════════════════════════════════════════════
-             COVER + IDENTITY
+            COVER + IDENTITY
         ══════════════════════════════════════════════ -->
         <section class="relative pt-20">
             <!-- Cover -->

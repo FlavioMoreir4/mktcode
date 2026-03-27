@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Domain\Identity\Enums\SocialPlatform;
+use App\Domain\Shared\Enums\SocialPlatform;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use BackedEnum;

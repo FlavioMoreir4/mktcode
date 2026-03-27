@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages;
 
-use App\Domain\Identity\Enums\SocialPlatform;
+use App\Domain\Shared\Enums\SocialPlatform;
 use Filament\Auth\Pages\EditProfile as BaseEditProfile;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
