@@ -26,6 +26,8 @@ final readonly class PublicProfileViewData implements PublicPayloadData
         public string $cover,
         public ?array $social,
         public ?string $skills,
+        public int $projectsCount,
+        public int $postsCount,
         public array $projects,
         public array $posts,
     ) {}
@@ -42,6 +44,8 @@ final readonly class PublicProfileViewData implements PublicPayloadData
             cover: $user->cover_photo_url,
             social: $user->social_links,
             skills: $user->skills,
+            projectsCount: $user->projects_count,
+            postsCount: $user->posts_count,
             projects: $user->relationLoaded('projects')
                 ? $user->projects->map(fn ($project): array => PublicProjectViewData::fromModel($project)->toArray())->all()
                 : [],
@@ -66,6 +70,8 @@ final readonly class PublicProfileViewData implements PublicPayloadData
             'cover' => $this->cover,
             'social' => $this->social,
             'skills' => $this->skills,
+            'projects_count' => $this->projectsCount,
+            'posts_count' => $this->postsCount,
             'projects' => [
                 'data' => $this->projects,
             ],

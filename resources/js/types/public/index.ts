@@ -82,6 +82,8 @@ export interface PublicProfileViewData {
     cover: string;
     social: SocialLink[] | null;
     skills: string | null;
+    projects_count: number;
+    posts_count: number;
     projects: { data: PublicProjectViewData[] };
     posts: { data: PublicPostSummaryData[] };
 }

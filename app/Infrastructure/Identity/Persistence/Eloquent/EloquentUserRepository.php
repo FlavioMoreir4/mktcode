@@ -18,6 +18,14 @@ class EloquentUserRepository implements UserRepository
             ->where('username', $username)
             ->whereNotNull('username')
             ->where('username', '!=', '')
+            ->withCount([
+                'posts' => fn ($query) => $query
+                    ->where('status', PostStatus::Published)
+                    ->whereNotNull('published_at')
+                    ->where('published_at', '<=', now()),
+                'projects' => fn ($query) => $query
+                    ->where('status', ProjectStatus::Published),
+            ])
             ->with([
                 'posts' => fn ($query) => $query
                     ->where('status', PostStatus::Published)

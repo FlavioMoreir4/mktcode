@@ -149,12 +149,12 @@ const regularProjects = computed(
 
 const stats = computed(() => [
     {
-        value: props.user.projects?.data?.length ?? 0,
+        value: props.user.projects_count,
         label: 'Projetos',
         icon: Layers,
     },
     {
-        value: props.user.posts?.data?.length ?? 0,
+        value: props.user.posts_count,
         label: 'Artigos',
         icon: BookOpen,
     },
