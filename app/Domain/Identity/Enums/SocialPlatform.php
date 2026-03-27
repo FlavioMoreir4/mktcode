@@ -82,9 +82,9 @@ enum SocialPlatform: string
             self::Dribbble => 'dribbble.com',
             self::Behance => 'behance.net',
             self::Figma => 'figma.com',
-            self::Discord => 'discord.com',
-            self::Telegram => 'telegram.org',
-            self::WhatsApp => 'whatsapp.com',
+            self::Discord => 'discord.gg',
+            self::Telegram => 't.me',
+            self::WhatsApp => 'wa.me',
             self::Patreon => 'patreon.com',
             self::KoFi => 'ko-fi.com',
             self::Website => null, // Website é genérico
