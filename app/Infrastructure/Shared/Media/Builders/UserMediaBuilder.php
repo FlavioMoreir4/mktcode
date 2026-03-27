@@ -22,10 +22,12 @@ class UserMediaBuilder implements PublicMediaBuilder
             throw new InvalidArgumentException('UserMediaBuilder expects a User model.');
         }
 
+        $avatar = $resource->getFirstMedia('profile_photo');
+        $cover = $resource->getFirstMedia('cover_photo');
+
         return new PublicMediaData(
-            avatar: [
-                'url' => $resource->profile_photo_url,
-            ],
+            avatar: $avatar ? ($avatar->hasGeneratedConversion('webp') ? $avatar->getUrl('webp') : $avatar->getUrl()) : '',
+            profileCover: $cover ? ($cover->hasGeneratedConversion('webp') ? $cover->getUrl('webp') : $cover->getUrl()) : '',
         );
     }
 }

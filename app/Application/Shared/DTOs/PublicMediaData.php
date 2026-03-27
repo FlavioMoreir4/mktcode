@@ -11,8 +11,8 @@ final readonly class PublicMediaData implements PublicPayloadData
     public function __construct(
         public ?array $cover = null,
         public array $gallery = [],
-        public ?array $avatar = null,
-        public ?array $profileCover = null,
+        public ?string $avatar = null,
+        public ?string $profileCover = null,
     ) {}
 
     /**

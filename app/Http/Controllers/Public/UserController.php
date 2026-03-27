@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
-use App\Application\Identity\DTOs\PublicProfileViewData;
 use App\Application\Identity\Queries\GetPublicProfileQuery;
+use App\Application\Identity\Services\PublicProfileFactory;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Public\PublicUserResource;
 use App\Infrastructure\Shared\SEO\SeoService;
@@ -18,7 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class UserController extends Controller
 {
-    public function show(string $user, GetPublicProfileQuery $getPublicProfile, SeoService $seo): Response
+    public function show(string $user, GetPublicProfileQuery $getPublicProfile, PublicProfileFactory $factory, SeoService $seo): Response
     {
         $profile = $getPublicProfile->findByUsername($user);
         if ($profile === null) {
@@ -26,7 +26,7 @@ class UserController extends Controller
         }
 
         return Inertia::render('public/user/Show', [
-            'user' => PublicUserResource::make(PublicProfileViewData::fromModel($profile))->resolve(),
+            'user' => PublicUserResource::make($factory->make($profile))->resolve(),
             'seo' => $seo->forUser($profile),
         ]);
     }
