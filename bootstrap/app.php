@@ -46,20 +46,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 ]);
             }
 
-            return Inertia::render('Error', ['status' => $status])
-                ->toResponse($request)
-                ->setStatusCode($status);
-
             // Request Inertia → responde com componente Vue
-            // if ($request->header('X-Inertia')) {
-            //     return Inertia::render('Error', ['status' => $status])
-            //         ->toResponse($request)
-            //         ->setStatusCode($status);
-            // }
+            if ($request->header('X-Inertia')) {
+                return Inertia::render('Error', ['status' => $status])
+                    ->toResponse($request)
+                    ->setStatusCode($status);
+            }
 
             // Request normal (bot, curl, SSR, acesso direto) → Blade
             // Laravel resolve automaticamente resources/views/errors/{status}.blade.php
-            // return $response;
+            return $response;
         });
 
     })->create();
