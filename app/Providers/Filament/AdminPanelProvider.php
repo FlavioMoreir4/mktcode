@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\EditProfile;
+use Cmsmaxinc\FilamentErrorPages\FilamentErrorPagesPlugin;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Auth\MultiFactor\Email\EmailAuthentication;
 use Filament\Http\Middleware\Authenticate;
@@ -29,7 +30,12 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
+
             ->id('admin')
+            ->default(true)
+            ->plugins([
+                FilamentErrorPagesPlugin::make(),
+            ])
             ->login()
             ->multiFactorAuthentication([
                 AppAuthentication::make()
@@ -75,7 +81,6 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('android-chrome-512x512.png'))
             ->brandName('MKTCode')
             ->favicon(asset('favicon.ico'))
-
             ->navigationItems([
                 NavigationItem::make('Voltar para o site')
                     ->url(url('/'))

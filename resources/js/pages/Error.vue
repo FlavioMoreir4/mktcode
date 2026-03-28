@@ -2,21 +2,20 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, RefreshCw, Home } from 'lucide-vue-next';
 import { computed } from 'vue';
-import SeoHead from '@/components/SeoHead.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 
 const props = defineProps<{
     status: number;
 }>();
 
-type ErrorContent = {
+interface ErrorContent {
     title: string;
     description: string;
     /** Ação primária */
-    primary: { label: string; href: string };
+    primary: { label: string; href: string; reload?: boolean };
     /** Ação secundária — opcional */
     secondary?: { label: string; href: string; reload?: boolean };
-};
+}
 
 const content = computed((): ErrorContent => {
     const map: Record<number, ErrorContent> = {
@@ -68,6 +67,7 @@ const content = computed((): ErrorContent => {
 function handleAction(action: { href: string; reload?: boolean }) {
     if (action.reload) {
         window.location.reload();
+
         return;
     }
 }

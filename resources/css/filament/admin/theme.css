@@ -6,3 +6,4 @@
 @import '../../../../vendor/awcodes/richer-editor/resources/css/index.css';
 
 @source '../../../../vendor/awcodes/richer-editor/resources/views/**/*.blade.php';
+@source '../../../../vendor/cmsmaxinc/filament-error-pages/resources/**/*.blade.php';
