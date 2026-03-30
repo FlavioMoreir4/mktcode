@@ -10,7 +10,8 @@ test('users without admin permissions cannot access the Filament panel', functio
 
     $this->actingAs($user)
         ->get('/admin')
-        ->assertForbidden();
+        ->assertStatus(302)
+        ->assertRedirect('/admin/403');
 });
 
 test('users with a content role can access the Filament panel', function () {
