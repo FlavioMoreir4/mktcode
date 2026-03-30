@@ -67,6 +67,8 @@ const slugify = (str: string) =>
 
 const padIndex = (i: number) => String(i + 1).padStart(2, '0');
 
+const isMounted = ref(false);
+
 // ─── Active section tracking ──────────────────────────────────────────────────
 const activeId = ref<string>('');
 const showMobileNav = ref(false);
@@ -92,6 +94,7 @@ const handleScroll = () => {
 let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
+    isMounted.value = true;
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
@@ -140,7 +143,7 @@ const shortLabel = (title: string) => {
 
     <PublicLayout>
         <!-- ── Pill nav mobile — sticky, aparece após 200px ──────────── -->
-        <Teleport to="body">
+        <Teleport to="body" :disabled="!isMounted">
             <Transition
                 enter-active-class="transition-all duration-200"
                 enter-from-class="opacity-0 -translate-y-2"

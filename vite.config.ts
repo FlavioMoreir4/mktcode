@@ -12,21 +12,23 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/js/app.ts',
+                'resources/css/app.css',
                 'resources/css/filament/admin/theme.css',
             ],
-            ssr: 'resources/js/ssr.ts',
+            // ssr: 'resources/js/ssr.ts',
             refresh: true,
         }),
-        inertia(),
+        inertia({
+            ssr: {
+                cluster: true,
+            },
+        }),
         tailwindcss(),
         vue({
             template: {
                 transformAssetUrls: {
                     base: null,
                     includeAbsolute: false,
-                },
-                compilerOptions: {
-                    isCustomElement: (tag) => tag.startsWith('swiper-'),
                 },
             },
         }),
@@ -39,23 +41,6 @@ export default defineConfig({
         visualizer(),
     ],
     build: {
-        rollupOptions: {
-            external: [],
-            output: {
-                // manualChunks: {
-                //     // 'vendor-vue': ['vue', '@inertiajs/vue3'],
-                //     'vendor-editor': ['highlight.js'],
-                // },
-                // manualChunks(id) {
-                //     if (id.includes('highlight.js')) {
-                //         return 'vendor-editor';
-                //     }
-                //     if (id.includes('vue') || id.includes('@inertiajs/vue3')) {
-                //         return 'vendor-vue';
-                //     }
-                // },
-            },
-        },
         sourcemap: true,
     },
 });

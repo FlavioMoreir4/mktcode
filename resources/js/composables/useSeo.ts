@@ -7,8 +7,6 @@ export function useSeo(props?: SeoProps): Required<SeoProps> {
 
     const site = page.props.site as SiteData;
     const globalSeo = (page.props.seo ?? null) as SeoProps | null;
-    const currentUrl =
-        typeof window !== 'undefined' ? window.location.href : site.url;
 
     return {
         title: props?.title ?? globalSeo?.title ?? site.name,
@@ -16,9 +14,9 @@ export function useSeo(props?: SeoProps): Required<SeoProps> {
         description:
             props?.description ?? globalSeo?.description ?? site.description,
 
-        url: props?.url ?? globalSeo?.url ?? currentUrl,
+        url: props?.url ?? globalSeo?.url ?? site.url,
 
-        canonical: props?.canonical ?? globalSeo?.canonical ?? currentUrl,
+        canonical: props?.canonical ?? globalSeo?.canonical ?? site.url,
 
         image: props?.image ?? globalSeo?.image ?? site.og_image,
 

@@ -6,20 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>@yield('code') — {{ config('app.name') }}</title>
-    @php
-        $manifestPath = public_path('build/manifest.json');
-        $cssFile = null;
-        if (file_exists($manifestPath)) {
-            $manifest = json_decode(file_get_contents($manifestPath), true);
-            $cssFile = $manifest['resources/js/app.ts']['css'][0] ?? null;
-        }
-    @endphp
-
-    @if ($cssFile)
-        <link rel="stylesheet" href="{{ asset('build/' . $cssFile) }}">
-    @else
-        @vite(['resources/js/app.ts'])
-    @endif
+    @vite(['resources/css/app.css'])
 </head>
 
 <body class="min-h-screen bg-background font-sans selection:bg-primary/10">
