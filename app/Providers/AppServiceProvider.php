@@ -30,6 +30,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Inertia\ExceptionResponse;
+use Inertia\Inertia;
 use URL;
 
 class AppServiceProvider extends ServiceProvider
@@ -72,6 +74,14 @@ class AppServiceProvider extends ServiceProvider
         Post::observe(PostObserver::class);
         Project::observe(ProjectObserver::class);
         User::observe(UserObserver::class);
+
+        Inertia::handleExceptionsUsing(function (ExceptionResponse $response) {
+            if (in_array($response->statusCode(), [403, 404, 500, 503])) {
+                return $response->render('Error', [
+                    'status' => $response->statusCode(),
+                ])->withSharedData();
+            }
+        });
     }
 
     /**

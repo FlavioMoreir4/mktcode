@@ -15,6 +15,7 @@
     ],
     "sail": false,
     "skills": [
+        "laravel-best-practices",
         "wayfinder-development",
         "livewire-development",
         "pest-testing",
