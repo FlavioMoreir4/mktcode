@@ -24,12 +24,19 @@ class UserSitemapProvider implements SitemapEntryProvider
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                     ->setPriority(0.6);
 
+                $urlAt = Url::create(route('public.user.show.at', $user->username))
+                    ->setLastModificationDate($user->updated_at)
+                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                    ->setPriority(0.6);
+
                 $cover = $user->getFirstMedia('profile_photo');
                 if ($cover) {
                     $url->addImage($cover->getUrl(), $user->title ?? $user->name);
+                    $urlAt->addImage($cover->getUrl(), $user->title ?? $user->name);
                 }
 
                 $sitemap->add($url);
+                $sitemap->add($urlAt);
             });
     }
 
