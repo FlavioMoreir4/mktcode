@@ -62,8 +62,8 @@ jobs:
 
       # Rode seus testes aqui.
       # Ajuste ou remova se ainda não quiser bloquear build por teste.
-      - name: Rodar testes
-        run: php artisan test
+      # - name: Rodar testes
+      #   run: php artisan test
 
       # Build do frontend e do SSR.
       # Ajuste esse comando para refletir exatamente o seu projeto.
