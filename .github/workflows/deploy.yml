@@ -1,0 +1,58 @@
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_name:
+        description: 'Nome do artifact gerado no build'
+        required: true
+        default: 'release-latest'
+      environment_name:
+        description: 'Ambiente de deploy'
+        required: true
+        default: 'production'
+
+# Evita dois deploys de produção rodando ao mesmo tempo.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Environment do GitHub para regras, segredos e aprovações.
+    environment: production
+
+    steps:
+      # Baixa o artifact gerado anteriormente.
+      - name: Baixar artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ./artifact
+
+      # Opcional: exibe a estrutura do que foi baixado.
+      - name: Verificar artifact
+        run: ls -lah ./artifact
+
+      # Envia o arquivo compactado para o servidor.
+      # Troque usuário, host e caminho conforme o seu ambiente.
+      - name: Enviar pacote ao servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          source: './artifact/release.tar.gz'
+          target: '/tmp/mktcode-deploy'
+
+      # Executa o script de publicação no servidor.
+      - name: Publicar release no servidor
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            bash /www/wwwroot/mktcode.digital/bin/publish.sh /tmp/mktcode-deploy/release.tar.gz

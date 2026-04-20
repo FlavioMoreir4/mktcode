@@ -1,0 +1,6 @@
+domains:
+    - mktcode
+secured: true
+workers:
+    - queue
+    - schedule
