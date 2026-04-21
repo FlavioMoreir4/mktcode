@@ -73,8 +73,13 @@ jobs:
       # Monta uma pasta "release" contendo apenas o necessário para runtime.
       - name: Montar diretório da release
         run: |
-          mkdir -p release
+          RELEASE_DIR="/tmp/mktcode-release"
 
+          # Garante ambiente limpo
+          rm -rf "$RELEASE_DIR"
+          mkdir -p "$RELEASE_DIR"
+
+          # Copia apenas o necessário para a release
           rsync -a \
             --exclude=".git" \
             --exclude=".github" \
@@ -82,19 +87,12 @@ jobs:
             --exclude="tests" \
             --exclude="storage/logs/*" \
             --exclude="node_modules/.cache" \
-            ./ release/
+            --exclude="release" \
+            ./ "$RELEASE_DIR"/
 
-      # Remove qualquer sobra desnecessária por segurança.
-      - name: Limpar arquivos desnecessários
-        run: |
-          rm -rf release/.git
-          rm -rf release/.github
-          rm -rf release/tests
-
-      # Empacota a release final em um tar.gz.
       - name: Compactar release
         run: |
-          tar -czf release.tar.gz -C release .
+          tar -czf release.tar.gz -C /tmp/mktcode-release .
 
       # Salva o pacote como artifact do workflow.
       - name: Publicar artifact
