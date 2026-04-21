@@ -72,4 +72,4 @@ jobs:
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
-            bash /www/wwwroot/mktcode.digital/bin/publish.sh /tmp/mktcode-deploy/release.tar.gz
+            bash /www/wwwroot/mktcode.digital/bin/publish.sh /tmp/mktcode-deploy/artifact/release.tar.gz
