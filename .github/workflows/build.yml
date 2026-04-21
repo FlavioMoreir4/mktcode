@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-# Evita dois builds concorrendo na mesma branch.
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -15,20 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Ambiente de build.
       APP_ENV: production
       APP_DEBUG: false
-
-      # Use apenas variáveis públicas e realmente necessárias ao build.
-      # Evite injetar aqui segredos reais de produção.
       VITE_APP_NAME: 'MKT Code'
 
     steps:
-      # Baixa o código do repositório.
       - name: Checkout do código
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      # Prepara o PHP para a aplicação Laravel.
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -36,50 +29,34 @@ jobs:
           extensions: mbstring, bcmath, curl, dom, fileinfo, intl, pdo_mysql, zip
           coverage: none
 
-      # Prepara o Node para build do frontend/SSR.
       - name: Configurar Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
 
-      # Cria um .env temporário apenas para contexto de build.
-      # Esse arquivo NÃO vai para produção.
       - name: Preparar .env de build
         run: cp .env.example .env
 
-      # Instala dependências PHP já em modo otimizado para produção.
       - name: Instalar dependências Composer
         run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-      # Gera APP_KEY local de build, se necessário para comandos Artisan.
       - name: Gerar APP_KEY temporária
         run: php artisan key:generate
 
-      # Instala dependências Node.
       - name: Instalar dependências Node
         run: npm ci
 
-      # Rode seus testes aqui.
-      # Ajuste ou remova se ainda não quiser bloquear build por teste.
-      # - name: Rodar testes
-      #   run: php artisan test
-
-      # Build do frontend e do SSR.
-      # Ajuste esse comando para refletir exatamente o seu projeto.
       - name: Gerar build de produção
         run: npm run build:ssr
 
-      # Monta uma pasta "release" contendo apenas o necessário para runtime.
       - name: Montar diretório da release
         run: |
           RELEASE_DIR="/tmp/mktcode-release"
 
-          # Garante ambiente limpo
           rm -rf "$RELEASE_DIR"
           mkdir -p "$RELEASE_DIR"
 
-          # Copia apenas o necessário para a release
           rsync -a \
             --exclude=".git" \
             --exclude=".github" \
@@ -90,14 +67,19 @@ jobs:
             --exclude="release" \
             ./ "$RELEASE_DIR"/
 
+      - name: Salvar metadados da build
+        run: |
+          echo "${GITHUB_SHA}" > /tmp/mktcode-release/COMMIT_SHA
+          echo "${GITHUB_REF_NAME}" > /tmp/mktcode-release/COMMIT_BRANCH
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > /tmp/mktcode-release/BUILD_AT
+
       - name: Compactar release
         run: |
           tar -czf release.tar.gz -C /tmp/mktcode-release .
 
-      # Salva o pacote como artifact do workflow.
       - name: Publicar artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ github.sha }}
+          name: release
           path: release.tar.gz
           retention-days: 7
