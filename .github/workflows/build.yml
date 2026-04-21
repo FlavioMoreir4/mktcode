@@ -18,8 +18,8 @@ jobs:
       APP_DEBUG: false
       APP_NAME: 'MC - Marketing & Code'
       APP_URL: 'https://mktcode.digital'
-      VITE_APP_NAME: ${{ APP_NAME }}
-      VITE_APP_URL: ${{ APP_URL }}
+      VITE_APP_NAME: 'MC - Marketing & Code'
+      VITE_APP_URL: 'https://mktcode.digital'
 
     steps:
       - name: Checkout do código
