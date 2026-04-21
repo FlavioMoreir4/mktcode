@@ -16,7 +16,8 @@ jobs:
     env:
       APP_ENV: production
       APP_DEBUG: false
-      VITE_APP_NAME: 'MKT Code'
+      VITE_APP_NAME: 'MC - Marketing & Code'
+      VITE_APP_URL: 'https://mktcode.digital'
 
     steps:
       - name: Checkout do código
