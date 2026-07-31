@@ -1,6 +1,7 @@
 domains:
-    - mktcode
+  - mktcode
 secured: true
 workers:
-    - queue
-    - schedule
+  - queue
+  - schedule
+  - vite

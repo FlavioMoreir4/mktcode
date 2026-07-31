@@ -2,7 +2,6 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, RefreshCw, Home } from 'lucide-vue-next';
 import { computed } from 'vue';
-import PublicLayout from '@/layouts/PublicLayout.vue';
 
 const props = defineProps<{
     status: number;
@@ -74,86 +73,67 @@ function handleAction(action: { href: string; reload?: boolean }) {
 </script>
 
 <template>
+
     <Head>
         <title>{{ status }} — {{ content.title }}</title>
     </Head>
 
-    <PublicLayout>
-        <section
-            class="flex min-h-[80vh] flex-col items-center justify-center px-6 py-24 text-center"
-        >
-            <!-- Código decorativo ao fundo -->
-            <div class="relative mb-8 select-none" aria-hidden="true">
-                <span
-                    class="text-[9rem] leading-none font-black tracking-tighter text-primary/[0.06] md:text-[12rem]"
-                >
-                    {{ status }}
-                </span>
-                <!-- Linha decorativa sobre o número -->
-                <div
-                    class="absolute top-1/2 left-1/2 h-px w-24 -translate-x-1/2 -translate-y-1/2 bg-primary/20"
-                />
-            </div>
+    <section class="flex min-h-[80vh] flex-col items-center justify-center px-6 py-24 text-center">
+        <!-- Código decorativo ao fundo -->
+        <div class="relative mb-8 select-none" aria-hidden="true">
+            <span class="text-[9rem] leading-none font-black tracking-tighter text-primary/[0.06] md:text-[12rem]">
+                {{ status }}
+            </span>
+            <!-- Linha decorativa sobre o número -->
+            <div class="absolute top-1/2 left-1/2 h-px w-24 -translate-x-1/2 -translate-y-1/2 bg-primary/20" />
+        </div>
 
-            <!-- Conteúdo -->
-            <div class="max-w-md">
-                <h1 class="mb-3 text-3xl font-bold tracking-tight md:text-4xl">
-                    {{ content.title }}
-                </h1>
-                <p
-                    class="mb-10 text-base leading-relaxed text-muted-foreground"
-                >
-                    {{ content.description }}
-                </p>
+        <!-- Conteúdo -->
+        <div class="max-w-md">
+            <h1 class="mb-3 text-3xl font-bold tracking-tight md:text-4xl">
+                {{ content.title }}
+            </h1>
+            <p class="mb-10 text-base leading-relaxed text-muted-foreground">
+                {{ content.description }}
+            </p>
 
-                <!-- CTAs -->
-                <div
-                    class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
-                >
-                    <!-- Primário -->
-                    <template v-if="content.primary.reload">
-                        <button
-                            type="button"
-                            class="flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
-                            @click="handleAction(content.primary)"
-                        >
-                            <RefreshCw class="h-4 w-4" />
-                            {{ content.primary.label }}
+            <!-- CTAs -->
+            <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                <!-- Primário -->
+                <template v-if="content.primary.reload">
+                    <button type="button"
+                        class="flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
+                        @click="handleAction(content.primary)">
+                        <RefreshCw class="h-4 w-4" />
+                        {{ content.primary.label }}
+                    </button>
+                </template>
+                <template v-else>
+                    <Link :href="content.primary.href"
+                        class="flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-md transition-all hover:opacity-90 active:scale-[0.98]">
+                        <Home class="h-4 w-4" />
+                        {{ content.primary.label }}
+                    </Link>
+                </template>
+
+                <!-- Secundário -->
+                <template v-if="content.secondary">
+                    <template v-if="content.secondary.reload">
+                        <button type="button"
+                            class="flex items-center gap-2 rounded-full border border-border px-7 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
+                            @click="handleAction(content.secondary)">
+                            {{ content.secondary.label }}
                         </button>
                     </template>
                     <template v-else>
-                        <Link
-                            :href="content.primary.href"
-                            class="flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
-                        >
-                            <Home class="h-4 w-4" />
-                            {{ content.primary.label }}
+                        <Link :href="content.secondary.href"
+                            class="flex items-center gap-2 rounded-full border border-border px-7 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]">
+                            <ArrowLeft class="h-4 w-4" />
+                            {{ content.secondary.label }}
                         </Link>
                     </template>
-
-                    <!-- Secundário -->
-                    <template v-if="content.secondary">
-                        <template v-if="content.secondary.reload">
-                            <button
-                                type="button"
-                                class="flex items-center gap-2 rounded-full border border-border px-7 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
-                                @click="handleAction(content.secondary)"
-                            >
-                                {{ content.secondary.label }}
-                            </button>
-                        </template>
-                        <template v-else>
-                            <Link
-                                :href="content.secondary.href"
-                                class="flex items-center gap-2 rounded-full border border-border px-7 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted active:scale-[0.98]"
-                            >
-                                <ArrowLeft class="h-4 w-4" />
-                                {{ content.secondary.label }}
-                            </Link>
-                        </template>
-                    </template>
-                </div>
+                </template>
             </div>
-        </section>
-    </PublicLayout>
+        </div>
+    </section>
 </template>
