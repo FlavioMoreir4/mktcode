@@ -6,6 +6,7 @@ namespace App\Infrastructure\Shared\SEO;
 
 use App\Application\Shared\DTOs\SeoData;
 use App\Infrastructure\Shared\SEO\Builders\PageSeoBuilder;
+use App\Models\Page;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\User;
@@ -52,5 +53,10 @@ class SeoService
     public function forUser(User $user): SeoData
     {
         return $this->registry->build($user);
+    }
+
+    public function forPageModel(Page $page): SeoData
+    {
+        return $this->registry->build($page);
     }
 }

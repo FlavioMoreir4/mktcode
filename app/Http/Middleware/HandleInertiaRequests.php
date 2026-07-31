@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Content\Contracts\PageRepository;
 use App\Settings\GeneralSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -19,7 +20,10 @@ class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
-    public function __construct(private readonly GeneralSettings $settings) {}
+    public function __construct(
+        private readonly GeneralSettings $settings,
+        private readonly PageRepository $pages,
+    ) {}
 
     /**
      * Determines the current asset version.
@@ -53,6 +57,11 @@ class HandleInertiaRequests extends Middleware
                 'social_links' => $this->settings->activeSocialLinks(),
             ],
             'name' => $this->settings->site_name,
+            'legalPages' => $this->pages->findLegalPages()->map(fn ($page) => [
+                'slug' => $page->slug,
+                'title' => $page->title,
+                'url' => route('public.page.show', $page->slug),
+            ])->values()->all(),
             'auth' => [
                 'user' => $request->user(),
             ],

@@ -6,6 +6,7 @@ use App\Http\Controllers\Public\AboutController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\InquiryController;
+use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\PostController;
 use App\Http\Controllers\Public\ProjectController;
 use App\Http\Controllers\Public\ServiceController;
@@ -46,6 +47,9 @@ Route::get('/sitemap-{type}.xml', function (string $type) {
 Route::get('/', HomeController::class)->name('home');
 
 Route::name('public.')->group(function () {
+
+    // Static pages (privacy policy, terms of service, etc.)
+    Route::get('/page/{page:slug}', [PageController::class, 'show'])->name('page.show');
 
     // Projects
     Route::get('/projetos', [ProjectController::class, 'index'])->name('projects');

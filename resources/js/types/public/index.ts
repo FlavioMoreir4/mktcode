@@ -87,3 +87,17 @@ export interface PublicProfileViewData {
     projects: { data: PublicProjectViewData[] };
     posts: { data: PublicPostSummaryData[] };
 }
+
+export interface PublicPageDetailData {
+    title: string;
+    slug: string;
+    excerpt: string | null;
+    published_at: string | null;
+    word_count: number;
+    reading_time: number;
+    body: string | null;
+    markdown: string | null;
+    plain_text: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+}

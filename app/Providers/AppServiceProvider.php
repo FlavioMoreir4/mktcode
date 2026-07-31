@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Content\Contracts\PageRepository;
 use App\Domain\Content\Contracts\PostRepository;
 use App\Domain\Identity\Contracts\UserRepository;
 use App\Domain\Inquiry\Contracts\InquiryRepository;
 use App\Domain\Portfolio\Contracts\ProjectRepository;
 use App\Events\Inquiries\InquirySubmitted;
+use App\Infrastructure\Content\Persistence\Eloquent\EloquentPageRepository;
 use App\Infrastructure\Content\Persistence\Eloquent\EloquentPostRepository;
 use App\Infrastructure\Identity\Filament\PanelAccessBridge;
 use App\Infrastructure\Identity\Persistence\Eloquent\EloquentUserRepository;
 use App\Infrastructure\Inquiry\Listeners\SendInquirySubmittedNotification;
 use App\Infrastructure\Inquiry\Persistence\Eloquent\EloquentInquiryRepository;
 use App\Infrastructure\Portfolio\Persistence\Eloquent\EloquentProjectRepository;
+use App\Models\Page;
 use App\Models\Post;
 use App\Models\Project;
 use App\Models\User;
+use App\Observers\PageObserver;
 use App\Observers\PostObserver;
 use App\Observers\ProjectObserver;
 use App\Observers\UserObserver;
@@ -46,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(InquiryRepository::class, EloquentInquiryRepository::class);
+        $this->app->bind(PageRepository::class, EloquentPageRepository::class);
         $this->app->bind(PostRepository::class, EloquentPostRepository::class);
         $this->app->bind(ProjectRepository::class, EloquentProjectRepository::class);
         $this->app->bind(UserRepository::class, EloquentUserRepository::class);
@@ -72,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(InquirySubmitted::class, SendInquirySubmittedNotification::class);
 
         Post::observe(PostObserver::class);
+        Page::observe(PageObserver::class);
         Project::observe(ProjectObserver::class);
         User::observe(UserObserver::class);
 
